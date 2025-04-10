@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebAssure Scanner - Scan Options</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+ /* From Uiverse.io by Erasmus001  */
+#wifi-loader {
+  display: none;
+  --background: #62abff;
+  --front-color: #000;
+  --back-color: #c3c8de;
+  --text-color: #414856;
+  width: 64px;
+  height: 64px;
+  border-radius: 50px;
+  position: fixed; 
+  top: 50%; 
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8); 
+  z-index: 9999; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#wifi-loader svg {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#wifi-loader svg circle {
+  position: absolute;
+  fill: none;
+  stroke-width: 6px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform: rotate(-100deg);
+  transform-origin: center;
+}
+
+#wifi-loader svg circle.back {
+  stroke: var(--back-color);
+}
+
+#wifi-loader svg circle.front {
+  stroke: var(--front-color);
+}
+
+#wifi-loader svg.circle-outer {
+  height: 86px;
+  width: 86px;
+}
+
+#wifi-loader svg.circle-outer circle {
+  stroke-dasharray: 62.75 188.25;
+}
+
+#wifi-loader svg.circle-outer circle.back {
+  animation: circle-outer135 1.8s ease infinite 0.3s;
+}
+
+#wifi-loader svg.circle-outer circle.front {
+  animation: circle-outer135 1.8s ease infinite 0.15s;
+}
+
+#wifi-loader svg.circle-middle {
+  height: 60px;
+  width: 60px;
+}
+
+#wifi-loader svg.circle-middle circle {
+  stroke-dasharray: 42.5 127.5;
+}
+
+#wifi-loader svg.circle-middle circle.back {
+  animation: circle-middle6123 1.8s ease infinite 0.25s;
+}
+
+#wifi-loader svg.circle-middle circle.front {
+  animation: circle-middle6123 1.8s ease infinite 0.1s;
+}
+
+#wifi-loader svg.circle-inner {
+  height: 34px;
+  width: 34px;
+}
+
+#wifi-loader svg.circle-inner circle {
+  stroke-dasharray: 22 66;
+}
+
+#wifi-loader svg.circle-inner circle.back {
+  animation: circle-inner162 1.8s ease infinite 0.2s;
+}
+
+#wifi-loader svg.circle-inner circle.front {
+  animation: circle-inner162 1.8s ease infinite 0.05s;
+}
+
+#wifi-loader .text {
+  position: absolute;
+  bottom: -40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-transform: lowercase;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.2px;
+}
+
+#wifi-loader .text::before,
+#wifi-loader .text::after {
+  content: attr(data-text);
+}
+
+#wifi-loader .text::before {
+  color: var(--text-color);
+}
+
+#wifi-loader .text::after {
+  color: var(--front-color);
+  animation: text-animation76 3.6s ease infinite;
+  position: absolute;
+  left: 0;
+}
+
+@keyframes circle-outer135 {
+  0% {
+    stroke-dashoffset: 25;
+  }
+
+  25% {
+    stroke-dashoffset: 0;
+  }
+
+  65% {
+    stroke-dashoffset: 301;
+  }
+
+  80% {
+    stroke-dashoffset: 276;
+  }
+
+  100% {
+    stroke-dashoffset: 276;
+  }
+}
+
+@keyframes circle-middle6123 {
+  0% {
+    stroke-dashoffset: 17;
+  }
+
+  25% {
+    stroke-dashoffset: 0;
+  }
+
+  65% {
+    stroke-dashoffset: 204;
+  }
+
+  80% {
+    stroke-dashoffset: 187;
+  }
+
+  100% {
+    stroke-dashoffset: 187;
+  }
+}
+
+@keyframes circle-inner162 {
+  0% {
+    stroke-dashoffset: 9;
+  }
+
+  25% {
+    stroke-dashoffset: 0;
+  }
+
+  65% {
+    stroke-dashoffset: 106;
+  }
+
+  80% {
+    stroke-dashoffset: 97;
+  }
+
+  100% {
+    stroke-dashoffset: 97;
+  }
+}
+
+@keyframes text-animation76 {
+  0% {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  50% {
+    clip-path: inset(0);
+  }
+
+  100% {
+    clip-path: inset(0 0 0 100%);
+  }
+}
+
+.scan-form {
+    max-width: 600px;
+    margin: 1.5rem auto;
+    padding: 1.25rem;
+    background: rgba(26, 44, 78, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(122, 162, 247, 0.2);
+    border-radius: 8px;
+}
+
+.form-group {
+    margin-bottom: 0.8rem;
+}
+
+.form-label {
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+    display: block;
+    color: #7aa2f7;
+    font-weight: 500;
+}
+
+input[type="text"], select {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 0.85rem;
+    background: rgba(17, 34, 64, 0.8);
+    border: 1px solid rgba(122, 162, 247, 0.3);
+    color: #c0caf5;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+input[type="text"]:focus, select:focus {
+    border-color: #7aa2f7;
+    box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.2);
+    outline: none;
+}
+
+.advanced-section {
+    padding: 1rem;
+    margin: 0.8rem 0;
+    background: rgba(17, 34, 64, 0.5);
+    border-radius: 6px;
+    border: 1px solid rgba(122, 162, 247, 0.1);
+}
+
+.section-title {
+    font-size: 0.95rem;
+    margin-bottom: 0.6rem;
+    color: #7aa2f7;
+}
+
+button[type="submit"] {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    background: linear-gradient(135deg, #7aa2f7, #3b82f6);
+    color: white;
+    border-radius: 8px;
+    font-weight: 500;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(122, 162, 247, 0.3);
+}
+
+#preview-list li {
+    padding: 0.35rem 0.7rem;
+    margin: 0.25rem 0;
+    font-size: 0.8rem;
+    background: rgba(17, 34, 64, 0.6);
+    border-radius: 6px;
+    color: #c0caf5;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#preview-list li:hover {
+    background: rgba(122, 162, 247, 0.1);
+}
+
+header {
+    padding: 1.25rem 0;
+}
+
+header h1 {
+    font-size: 1.6rem;
+    margin-bottom: 0.25rem;
+    text-align: center;
+    color: #7aa2f7;
+}
+
+header p {
+    font-size: 0.85rem;
+    text-align: center;
+    color: #a9b1d6;
+}
+
+.scanner-beam {
+    perspective: 800px;
+}
+
+.scan-line {
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: #7aa2f7;
+    animation: scan 2s linear infinite;
+    box-shadow: 0 0 8px #7aa2f7;
+}
+
+.scan-target {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #7aa2f7;
+    border-radius: 50%;
+    animation: target 3s ease-in-out infinite;
+    box-shadow: 0 0 8px #7aa2f7;
+}
+
+@keyframes scan {
+    0% {
+        top: 0;
+        box-shadow: 0 0 8px #7aa2f7;
+    }
+    50% {
+        box-shadow: 0 0 16px #7aa2f7;
+    }
+    100% {
+        top: 100%;
+        box-shadow: 0 0 8px #7aa2f7;
+    }
+}
+
+@keyframes target {
+    0% {
+        left: 0;
+        top: 0;
+    }
+    25% {
+        left: calc(100% - 20px);
+        top: 0;
+    }
+    50% {
+        left: calc(100% - 20px);
+        top: calc(100% - 20px);
+    }
+    75% {
+        left: 0;
+        top: calc(100% - 20px);
+    }
+    100% {
+        left: 0;
+        top: 0;
+    }
+}
+
+.scanner-text {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Add new scanner overlay styles */
+#scan-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 44, 78, 0.9);
+    backdrop-filter: blur(8px);
+    z-index: 50;
+}
+
+.scan-status {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #7aa2f7;
+}
+
+.scan-circle {
+    width: 120px;
+    height: 120px;
+    border: 3px solid #7aa2f7;
+    border-top-color: transparent;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    animation: scan-rotate 1s linear infinite;
+}
+
+@keyframes scan-rotate {
+    100% { transform: rotate(360deg); }
+}
+
+.scan-text {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.scan-subtext {
+    font-size: 0.875rem;
+    color: #a9b1d6;
+}
+    </style>
+</head>
+<body class="bg-gradient-to-br from-[#1a1b26] to-[#24283b] min-h-screen">
+    <canvas id="matrixCanvas" class="fixed top-0 left-0 w-full h-full opacity-20 z-0"></canvas>
+
+    <header class="relative z-10">
+        <h1>WebAssure Scanner</h1>
+        <p>Professional Web Security Assessment</p>
+    </header>
+
+    <main class="container scan-form">
+        <div class="glass-card">
+            <form id="scan-form" method="POST" action="{{ url_for('scan') }}" class="space-y-6">
+                <div class="form-group">
+                    <label for="target_url" class="form-label">Target URL or IP:</label>
+                    <input type="text" name="target_url" id="target_url" placeholder="http://example.com" required>
+                </div>
+
+                <div class="form-group email">
+                    <label for="send_email" class="form-label">Send Email Notification:</label>
+                    <label class="custom-checkbox">
+                        <input type="checkbox" name="send_email" id="send_email">
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="scan_mode" class="form-label">Scan Mode:</label>
+                    <select name="scan_mode" id="scan_mode">
+                        <option value="default" selected>Default</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                </div>
+
+                <div id="advanced-options" class="advanced-section" style="display: none;">
+                    <h3 class="section-title">Nikto Configuration</h3>
+                    <div class="form-group">
+                        <label for="nikto_tuning" class="form-label">Tuning Options:</label>
+                        <select name="nikto_tuning" id="nikto_tuning">
+                            <option value="" selected>None</option>
+                            <option value="0">File Upload</option>
+                            <option value="1">Interesting Files</option>
+                            <option value="2">Dangerous Files</option>
+                            <option value="3">Remote File Retrieval</option>
+                            <option value="4">Denial of Service</option>
+                            <option value="5">Remote Shell</option>
+                            <option value="6">SQL Injection</option>
+                            <option value="7">Authentication Bypass</option>
+                            <option value="8">Software Identification</option>
+                            <option value="9">Miscellaneous</option>
+                        </select>
+                    </div>
+
+                    <h3 class="section-title">OWASP ZAP Configuration</h3>
+                    <div class="form-group">
+                        <label for="zap_scanning" class="form-label">Active Scanning:</label>
+                        <select id="zap_scanning" name="zap_scanning">
+                            <option value="" selected>None</option>
+                            <option value="scanner.attackOnStart=true">Enable Active Scanning</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="zap_alert" class="form-label">Alert Threshold:</label>
+                        <select id="zap_alert" name="zap_alert">
+                            <option value="" selected>None</option>
+                            <option value="scanner.alertThreshold=HIGH">High</option>
+                            <option value="scanner.alertThreshold=MEDIUM">Medium</option>
+                            <option value="scanner.alertThreshold=LOW">Low</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="zap_depth" class="form-label">Spider Max Depth:</label>
+                        <select id="zap_depth" name="zap_depth">
+                            <option value="" selected>None</option>
+                            {% for i in range(1, 11) %}
+                            <option value="spider.maxDepth={{ i }}">Depth {{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="zap_duration" class="form-label">Spider Max Duration (mins):</label>
+                        <select id="zap_duration" name="zap_duration">
+                            <option value="" selected>None</option>
+                            {% for i in range(1, 31, 5) %}
+                            <option value="spider.maxDuration={{ i }}">Duration {{ i }} mins</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div id="config-preview" class="form-group">
+                    <h3 class="section-title">Selected Options</h3>
+                    <ul id="preview-list"></ul>
+                </div>
+
+                <button type="submit" id="scan-button" class="btn btn-primary">Start Scan</button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Scanner overlay -->
+    <div id="scan-overlay">
+        <div class="scan-status">
+            <div class="scan-circle"></div>
+            <div class="scan-text">Scanning Target</div>
+            <div class="scan-subtext" id="scan-status-text">Initializing scan...</div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='background-effects.js') }}"></script>
+    <script>
+        document.getElementById("scan_mode").addEventListener("change", function () {
+            const advancedOptions = document.getElementById("advanced-options");
+            advancedOptions.style.display = this.value === "advanced" ? "block" : "none";
+        });
+
+        const configPreview = document.getElementById("preview-list");
+        const zapOptions = ['zap_scanning', 'zap_alert', 'zap_depth', 'zap_duration'];
+        const niktoDropdown = document.getElementById("nikto_tuning");
+
+        function updatePreview(id, value, label) {
+            if (value) {
+                const li = document.createElement("li");
+                li.textContent = `${label}: ${value}`;
+                li.dataset.optionId = id;
+                li.addEventListener("click", function () {
+                    document.getElementById(id).value = "";
+                    li.remove();
+                });
+                configPreview.appendChild(li);
+            }
+        }
+
+        niktoDropdown.addEventListener("change", function () {
+            const value = this.value;
+            updatePreview("nikto_tuning", value, "Nikto Tuning");
+        });
+
+        zapOptions.forEach(optionId => {
+            const dropdown = document.getElementById(optionId);
+            dropdown.addEventListener("change", function () {
+                const value = this.value;
+                const label = dropdown.previousElementSibling.textContent;
+                updatePreview(optionId, value, label);
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const scanForm = document.getElementById("scan-form");
+            const scanOverlay = document.getElementById("scan-overlay");
+            const statusText = document.getElementById("scan-status-text");
+            const scanTexts = [
+                "Initializing scan...",
+                "Checking target availability...",
+                "Running Nikto scan...",
+                "Analyzing with OWASP ZAP...",
+                "Gathering security insights...",
+                "Processing results..."
+            ];
+            let currentTextIndex = 0;
+
+            scanForm.addEventListener("submit", function (event) {
+                event.preventDefault();
+                
+                // Show scan overlay
+                scanOverlay.style.display = "block";
+                
+                // Update status text periodically
+                const textInterval = setInterval(() => {
+                    statusText.textContent = scanTexts[currentTextIndex];
+                    currentTextIndex = (currentTextIndex + 1) % scanTexts.length;
+                }, 3000);
+
+                // Submit the form
+                fetch(scanForm.action, {
+                    method: 'POST',
+                    body: new FormData(scanForm)
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Scan failed');
+                    return response.text();
+                })
+                .then(data => {
+                    clearInterval(textInterval);
+                    window.location.href = data;
+                })
+                .catch(error => {
+                    clearInterval(textInterval);
+                    statusText.textContent = "Error: " + error.message;
+                    setTimeout(() => {
+                        scanOverlay.style.display = "none";
+                    }, 3000);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

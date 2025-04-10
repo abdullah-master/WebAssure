@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebAssure - Security Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+    .results-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+    }
+
+    .results-card {
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .vulnerability {
+        background: rgba(122, 162, 247, 0.05);
+        border-left: 4px solid var(--accent-primary);
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 0 8px 8px 0;
+    }
+
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+
+    .metric-card {
+        background: var(--primary-bg);
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    /* ...existing styles... */
+    </style>
+</head>
+<body class="min-h-screen bg-[#0a192f] overflow-x-hidden">
+    <!-- Matrix-style background -->
+    <canvas id="matrixCanvas" class="fixed top-0 left-0 w-full h-full opacity-20"></canvas>
+
+    <header class="relative z-10 bg-[#2d333b] bg-opacity-90 shadow-lg py-6">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl font-bold text-white text-center">Scan Results</h1>
+            <p class="text-gray-300 text-center mt-2">Comprehensive Security Analysis Report</p>
+        </div>
+    </header>
+
+    <main class="relative z-10 container mx-auto px-4 py-8">
+        <div class="glass-container p-8">
+            <div class="button-container flex justify-center gap-4 mb-8">
+                <button id="show-nikto" 
+                        class="px-6 py-3 bg-gradient-to-r from-green-400 to-teal-500 text-white rounded-lg
+                               hover:from-green-500 hover:to-teal-600 transform hover:scale-105 transition-all
+                               font-medium shadow-lg shadow-green-400/30">
+                    Nikto Scan Results
+                </button>
+                <button id="show-owasp-zap" 
+                        class="px-6 py-3 bg-gradient-to-r from-purple-400 to-indigo-500 text-white rounded-lg
+                               hover:from-purple-500 hover:to-indigo-600 transform hover:scale-105 transition-all
+                               font-medium shadow-lg shadow-purple-400/30">
+                    OWASP ZAP Results
+                </button>
+                <button onclick="window.location.href='{{ url_for('landing') }}'" 
+                        class="px-6 py-3 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg
+                               hover:from-blue-500 hover:to-cyan-600 transform hover:scale-105 transition-all
+                               font-medium shadow-lg shadow-blue-400/30">
+                    Back to Dashboard
+                </button>
+            </div>
+
+            <div class="pdf-download-container flex justify-center gap-4 mb-8">
+                <select id="pdf-type" 
+                        class="px-4 py-2 bg-[#1a2c4e] text-cyan-400 rounded-lg border border-cyan-500/30 
+                               focus:ring-2 focus:ring-cyan-500 focus:border-transparent">
+                    <option value="complete">Complete Detailed Report</option>
+                    <option value="summary">Summary Report</option>
+                    <option value="high-med">High & Medium Risks Only</option>
+                    <option value="high">High Risks Only</option>
+                    <option value="affected">Affected Points Only</option>
+                </select>
+                <button onclick="downloadPDF()" 
+                        class="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg
+                               hover:from-cyan-600 hover:to-blue-600 transform hover:scale-105 transition-all
+                               font-medium shadow-lg shadow-cyan-500/30">
+                    Download PDF Report
+                </button>
+            </div>
+
+            <!-- Results sections -->
+            <div id="nikto" class="section hidden">
+                <div class="bg-[#112240] rounded-lg border border-cyan-500/30 p-6 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-[#1a2c4e] p-4 rounded-lg">
+                            <h3 class="text-xl font-semibold text-cyan-400 mb-4">Scan Information</h3>
+                            <div class="space-y-2">
+                                <p><span class="text-gray-400">Host:</span> <span id="nikto-host" class="text-white"></span></p>
+                                <p><span class="text-gray-400">IP:</span> <span id="nikto-ip" class="text-white"></span></p>
+                                <p><span class="text-gray-400">Port:</span> <span id="nikto-port" class="text-white"></span></p>
+                                <p><span class="text-gray-400">Banner:</span> <span id="nikto-banner" class="text-white"></span></p>
+                            </div>
+                        </div>
+                        <div class="bg-[#1a2c4e] p-4 rounded-lg">
+                            <h3 class="text-xl font-semibold text-cyan-400 mb-4">SSL Information</h3>
+                            <div id="ssl-info" class="space-y-2">
+                                <!-- SSL info will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                    <div id="nikto-content" class="space-y-4">
+                        <!-- Nikto findings will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="owasp-zap" class="section hidden">
+                <div class="bg-[#112240] rounded-lg border border-cyan-500/30 p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-[#1a2c4e] p-4 rounded-lg text-center">
+                            <h4 class="text-red-400 text-lg font-semibold mb-2">High Risk</h4>
+                            <p id="zap-high" class="text-2xl font-bold text-white">0</p>
+                        </div>
+                        <div class="bg-[#1a2c4e] p-4 rounded-lg text-center">
+                            <h4 class="text-yellow-400 text-lg font-semibold mb-2">Medium Risk</h4>
+                            <p id="zap-medium" class="text-2xl font-bold text-white">0</p>
+                        </div>
+                        <div class="bg-[#1a2c4e] p-4 rounded-lg text-center">
+                            <h4 class="text-green-400 text-lg font-semibold mb-2">Low Risk</h4>
+                            <p id="zap-low" class="text-2xl font-bold text-white">0</p>
+                        </div>
+                        <div class="bg-[#1a2c4e] p-4 rounded-lg text-center">
+                            <h4 class="text-blue-400 text-lg font-semibold mb-2">Total Alerts</h4>
+                            <p id="zap-total" class="text-2xl font-bold text-white">0</p>
+                        </div>
+                    </div>
+                    <div id="owasp-zap-content" class="space-y-4">
+                        <!-- ZAP findings will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='background-effects.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initMatrixRain();
+            
+            // Add button click handlers
+            document.getElementById('show-nikto').addEventListener('click', () => {
+                document.getElementById('nikto').classList.remove('hidden');
+                document.getElementById('owasp-zap').classList.add('hidden');
+                
+                // Update button states
+                document.getElementById('show-nikto').classList.add('opacity-100', 'ring-2');
+                document.getElementById('show-owasp-zap').classList.remove('opacity-100', 'ring-2');
+            });
+
+            document.getElementById('show-owasp-zap').addEventListener('click', () => {
+                document.getElementById('owasp-zap').classList.remove('hidden');
+                document.getElementById('nikto').classList.add('hidden');
+                
+                // Update button states
+                document.getElementById('show-owasp-zap').classList.add('opacity-100', 'ring-2');
+                document.getElementById('show-nikto').classList.remove('opacity-100', 'ring-2');
+            });
+            
+            // Get report ID from URL
+            const reportId = window.location.pathname.split('/').pop();
+            
+            // Fetch results from backend
+            fetch(`/api/report/${reportId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Received data:', data);
+                    
+                    if (data.error) {
+                        showErrorMessage(data.error);
+                        return;
+                    }
+                    
+                    // Show OWASP ZAP by default and mark its button as active
+                    document.getElementById('owasp-zap').classList.remove('hidden');
+                    document.getElementById('show-owasp-zap').classList.add('opacity-100', 'ring-2');
+
+                    // Handle Nikto Results
+                    if (data.nikto_results) {
+                        renderNiktoResults(data.nikto_results);
+                    }
+
+                    // Handle ZAP Results
+                    if (data.zap_results) {
+                        renderZapResults(data.zap_results);
+                    }
+
+                    // Update summary metrics
+                    updateSummaryMetrics(data.metrics || {});
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showErrorMessage('Failed to load scan results');
+                });
+        });
+
+        function updateSummaryMetrics(metrics) {
+            if (metrics.zap) {
+                document.getElementById('zap-high').textContent = metrics.zap.high_risks || 0;
+                document.getElementById('zap-medium').textContent = metrics.zap.medium_risks || 0;
+                document.getElementById('zap-low').textContent = metrics.zap.low_risks || 0;
+                document.getElementById('zap-total').textContent = 
+                    (metrics.zap.high_risks || 0) + 
+                    (metrics.zap.medium_risks || 0) + 
+                    (metrics.zap.low_risks || 0);
+            }
+        }
+
+        function renderNiktoResults(data) {
+            // Update basic info
+            document.getElementById('nikto-host').textContent = data.host || 'N/A';
+            document.getElementById('nikto-ip').textContent = data.ip || 'N/A';
+            document.getElementById('nikto-port').textContent = data.port || 'N/A';
+            document.getElementById('nikto-banner').textContent = data.banner || 'N/A';
+
+            // Update SSL info
+            const sslInfo = document.getElementById('ssl-info');
+            if (data.ssl_info && Object.keys(data.ssl_info).length > 0) {
+                sslInfo.innerHTML = Object.entries(data.ssl_info)
+                    .map(([key, value]) => `
+                        <p><span class="text-gray-400">${key}:</span> 
+                        <span class="text-white">${value}</span></p>
+                    `).join('');
+            } else {
+                sslInfo.innerHTML = '<p class="text-gray-400">No SSL information available</p>';
+            }
+
+            // Render vulnerabilities
+            const vulnContent = document.getElementById('nikto-content');
+            if (data.vulnerabilities && data.vulnerabilities.length > 0) {
+                vulnContent.innerHTML = data.vulnerabilities.map(vuln => `
+                    <div class="bg-[#1a2c4e] p-4 rounded-lg border-l-4 border-cyan-500">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="text-white font-medium">${vuln.id || 'Unknown'}</h4>
+                            <span class="text-cyan-400 text-sm">${vuln.method || 'GET'}</span>
+                        </div>
+                        <p class="text-gray-300 mb-2">${vuln.msg}</p>
+                        ${vuln.references ? `
+                            <a href="${vuln.references}" target="_blank" 
+                               class="text-cyan-400 hover:text-cyan-300 text-sm">
+                                View Reference
+                            </a>
+                        ` : ''}
+                    </div>
+                `).join('');
+            } else {
+                vulnContent.innerHTML = '<p class="text-center text-gray-400">No vulnerabilities found</p>';
+            }
+        }
+
+        function renderZapResults(data) {
+            const alerts = data.alerts || [];
+            
+            // Update metrics
+            document.getElementById('zap-high').textContent = alerts.filter(a => a.risk === 'High').length;
+            document.getElementById('zap-medium').textContent = alerts.filter(a => a.risk === 'Medium').length;
+            document.getElementById('zap-low').textContent = alerts.filter(a => a.risk === 'Low').length;
+            document.getElementById('zap-total').textContent = alerts.length;
+
+            // Render alerts
+            const zapContent = document.getElementById('owasp-zap-content');
+            if (alerts.length > 0) {
+                zapContent.innerHTML = alerts.map(alert => `
+                    <div class="bg-[#1a2c4e] p-4 rounded-lg border-l-4 ${getRiskBorderClass(alert.risk)}">
+                        <div class="flex justify-between items-start mb-4">
+                            <h4 class="text-lg font-medium text-white">${alert.name}</h4>
+                            <span class="px-3 py-1 rounded-full text-sm ${getRiskClass(alert.risk)}">
+                                ${alert.risk}
+                            </span>
+                        </div>
+                        <div class="space-y-2 text-gray-300">
+                            <p><span class="text-cyan-400">Description:</span> ${alert.description}</p>
+                            <p><span class="text-cyan-400">Solution:</span> ${alert.solution}</p>
+                            <p><span class="text-cyan-400">URL:</span> ${alert.url}</p>
+                            ${alert.evidence ? `<p><span class="text-cyan-400">Evidence:</span> ${alert.evidence}</p>` : ''}
+                            ${alert.reference ? `
+                                <a href="${alert.reference}" target="_blank" 
+                                   class="text-cyan-400 hover:text-cyan-300 block mt-2">
+                                    View Reference
+                                </a>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                zapContent.innerHTML = '<p class="text-center text-gray-400">No alerts found</p>';
+            }
+        }
+
+        function getRiskBorderClass(risk) {
+            const riskClasses = {
+                'High': 'border-red-500',
+                'Medium': 'border-yellow-500',
+                'Low': 'border-green-500',
+                'Informational': 'border-blue-500'
+            };
+            return riskClasses[risk] || 'border-gray-500';
+        }
+
+        function getRiskClass(risk) {
+            const riskClasses = {
+                'High': 'bg-red-500/20 text-red-400',
+                'Medium': 'bg-yellow-500/20 text-yellow-400',
+                'Low': 'bg-green-500/20 text-green-400',
+                'Informational': 'bg-blue-500/20 text-blue-400'
+            };
+            return riskClasses[risk] || 'bg-gray-500/20 text-gray-400';
+        }
+
+        function showErrorMessage(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'bg-red-500/10 border border-red-500 text-red-400 px-4 py-3 rounded mb-6';
+            errorDiv.textContent = message;
+            document.querySelector('main').prepend(errorDiv);
+        }
+    </script>
+</body>
+</html>
