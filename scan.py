@@ -6,7 +6,7 @@ from zapv2 import ZAPv2
 import time
 import datetime
 
-ZAP_API_KEY = 'qv8j35dm4mu521ihth60imjbu3'  # Updated API key
+ZAP_API_KEY = 'vet7sjahc5cn2i88mbs5krrln4'  # Updated API key
 ZAP_ADDRESS = '127.0.0.1'
 ZAP_PORT = '8080'
 

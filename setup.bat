@@ -1,4 +1,4 @@
-REM filepath: c:\Users\laxmi\OneDrive\Desktop\Sem 6\ZapNik_Scanner-main\setup.bat
+REM filepath: C:\Users\abdul\OneDrive\Desktop\NOTES\PBL2\setup.bat
 @echo off
 echo Setting up ZapNik Scanner...
 
