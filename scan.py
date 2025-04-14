@@ -21,27 +21,23 @@ def load_email_config():
         return None
 
 
-def run_nikto(target_url, output_file, tuning_options="", timeout=900):  # 15 minutes default timeout
+def run_nikto(target_url, output_file, tuning_options=""):
     try:
         print("[*] Running Nikto Scan...")
         
         nikto_path = "C:\\Program Files\\nikto\\program\\nikto.pl"
         perl_path = "C:\\Strawberry\\perl\\bin\\perl.exe"
         
-        # Convert timeout from seconds to minutes for -maxtime
-        maxtime = f"{timeout//60}m"
-        
-        # Updated command with SSL support, JSON output, and maxtime
+        # Updated command with SSL support and JSON output
         nikto_command = [
             perl_path,
             nikto_path,
             "-h", target_url,
-            "-ssl",
-            "-Format", "json",
+            "-ssl",  # Add SSL support
+            "-Format", "json",  # Use JSON format
             "-o", os.path.abspath(output_file),
-            "-Plugins", "@@DEFAULT;tests(,all)",
-            "-Tuning", tuning_options if tuning_options else "123",
-            "-maxtime", maxtime  # Use maxtime instead of Timeout
+            "-Plugins", "@@DEFAULT;tests(,all)",  # Updated from -mutate
+            "-Tuning", tuning_options if tuning_options else "123"
         ]
 
         print(f"[*] Executing command: {' '.join(nikto_command)}")
@@ -56,65 +52,45 @@ def run_nikto(target_url, output_file, tuning_options="", timeout=900):  # 15 mi
             universal_newlines=True
         )
 
-        # Print output in real-time with timeout handling
+        # Print output in real-time
         output_text = []
-        start_time = time.time()
         while True:
-            if time.time() - start_time > timeout:
-                process.terminate()
-                raise TimeoutError(f"Scan exceeded timeout of {timeout} seconds")
-                
             output = process.stdout.readline()
             if output:
                 print(output.strip())
                 output_text.append(output)
             if process.poll() is not None:
                 break
-            time.sleep(0.1)  # Prevent CPU overuse
         
         # Get remaining output and errors
-        try:
-            stdout, stderr = process.communicate(timeout=30)  # 30 second timeout for final output
-            if stdout:
-                print(stdout)
-                output_text.append(stdout)
-            if stderr:
-                print("[-] Errors:", stderr)
-        except subprocess.TimeoutExpired:
-            process.terminate()
-            print("[-] Warning: Final output collection timed out")
+        stdout, stderr = process.communicate()
+        if stdout:
+            print(stdout)
+            output_text.append(stdout)
+        if stderr:
+            print("[-] Errors:", stderr)
 
-        if process.returncode not in [0, None]:
-            if process.returncode == 14:  # SIGALRM
-                print("[!] Scan terminated due to timeout - processing available results")
-            else:
-                raise Exception(f"Nikto failed with return code {process.returncode}")
+        if process.returncode != 0:
+            raise Exception(f"Nikto failed with return code {process.returncode}")
 
         # Join all output
         complete_output = ''.join(output_text)
 
-        # Parse available output
+        # Parse output directly from command output
         nikto_results = parse_nikto_output(complete_output)
 
+        # Add scan metadata
         return {
-            "scan_status": "completed" if process.returncode == 0 else "partial",
+            "scan_status": "completed",
             "host": target_url,
             "ip": nikto_results.get("ip", "N/A"),
             "port": nikto_results.get("port", "N/A"),
             "hostname": nikto_results.get("hostname", "N/A"),
             "banner": nikto_results.get("banner", "No banner retrieved"),
             "ssl_info": nikto_results.get("ssl_info", {}),
-            "vulnerabilities": nikto_results.get("vulnerabilities", []),
-            "completion_status": "full" if process.returncode == 0 else "timeout"
+            "vulnerabilities": nikto_results.get("vulnerabilities", [])
         }
             
-    except TimeoutError as e:
-        print(f"[!] {str(e)}")
-        return {
-            "scan_status": "timeout",
-            "host": target_url,
-            "error": str(e)
-        }
     except Exception as e:
         print(f"[-] Error during Nikto scan: {e}")
         if hasattr(e, 'stderr'):

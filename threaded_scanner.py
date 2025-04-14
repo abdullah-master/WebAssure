@@ -8,8 +8,8 @@ class ThreadedScanner:
         self.threads = []
         self.results_queue = Queue()
 
-    def nikto_thread(self, target_url, output_file, tuning="", timeout=900):
-        results = run_nikto(target_url, output_file, tuning, timeout)
+    def nikto_thread(self, target_url, output_file, tuning=""):
+        results = run_nikto(target_url, output_file, tuning)
         self.results_queue.put(('nikto', results))
 
     def zap_thread(self, target_url, output_file, options=None):
@@ -17,11 +17,11 @@ class ThreadedScanner:
         results = run_owasp_zap(target_url, output_file, options)
         self.results_queue.put(('zap', results))
 
-    def run_concurrent_scan(self, target_url, file_paths, nikto_tuning="", zap_options=None, nikto_timeout=900):
+    def run_concurrent_scan(self, target_url, file_paths, nikto_tuning="", zap_options=None):
         # Start Nikto scan thread
         nikto_thread = threading.Thread(
             target=self.nikto_thread,
-            args=(target_url, file_paths['nikto_output'], nikto_tuning, nikto_timeout)
+            args=(target_url, file_paths['nikto_output'], nikto_tuning)
         )
         
         # Start ZAP scan thread

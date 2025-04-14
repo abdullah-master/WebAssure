@@ -1,7 +1,7 @@
 REM filepath: C:\Users\laxmi\OneDrive\Desktop\PBL2\setup.bat
 @echo off
 echo Setting up WebAssure Scanner...
-pip install -r requirements.txt --upgrade
+
 echo Installing required Python packages...
 pip install pymongo flask python-dotenv fpdf requests
 

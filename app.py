@@ -11,15 +11,9 @@ from pdf_generator import generate_pdf_report
 import tempfile
 import time
 from threaded_scanner import ThreadedScanner
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-app.config['ENV'] = os.getenv('FLASK_ENV', 'development')
-app.config['DEBUG'] = os.getenv('FLASK_ENV', 'development') == 'development'
 
 @app.route("/", methods=["GET"])
 def landing():
@@ -221,12 +215,4 @@ def load_email_config():
         return None
 
 if __name__ == "__main__":
-    port = int(os.getenv('PORT', 3002))
-    host = os.getenv('HOST', '0.0.0.0')
-    debug = os.getenv('FLASK_ENV', 'development') == 'development'
-    
-    app.run(
-        host=host,
-        port=port,
-        debug=debug
-    )
+    app.run(host='0.0.0.0', port=3002, debug=False)
