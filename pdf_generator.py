@@ -43,7 +43,7 @@ class ReportPDF(FPDF):
 
     def header(self):
         self.set_font('Arial', 'B', 15)
-        self.cell(0, 10, 'ZapNik Scanner Report', 0, 1, 'C')
+        self.cell(0, 10, 'WebAssure Scanner Report', 0, 1, 'C')
         self.ln(10)
 
     def footer(self):

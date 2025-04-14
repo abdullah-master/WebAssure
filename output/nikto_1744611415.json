@@ -1,0 +1,18 @@
+{
+    "scan_status": "completed",
+    "host": "https://example.com",
+    "ip": "",
+    "port": "",
+    "hostname": "",
+    "banner": "",
+    "ssl_info": {},
+    "vulnerabilities": [
+        {
+            "id": "MISC",
+            "method": "GET",
+            "msg": "requires a value",
+            "references": ""
+        }
+    ],
+    "completion_status": "full"
+}

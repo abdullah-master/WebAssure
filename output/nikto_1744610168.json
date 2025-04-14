@@ -1,0 +1,5 @@
+{
+    "scan_status": "error",
+    "host": "https://example.com",
+    "error": "Nikto failed with return code 14"
+}
