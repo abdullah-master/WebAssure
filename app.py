@@ -1,6 +1,7 @@
 import os
 import json
 import traceback
+import threading
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, jsonify, send_from_directory, abort, send_file
 from scan import run_nikto, run_owasp_zap, save_results
@@ -51,37 +52,22 @@ def scan():
             if not target_url.startswith(("http://", "https://")):
                 target_url = f"http://{target_url}"
 
-            send_email_option = request.form.get("send_email") == "on"
-            nikto_tuning = request.form.get("nikto_tuning", "")
-            zap_options = [
-                request.form.get("zap_scanning"),
-                request.form.get("zap_alert"),
-                request.form.get("zap_depth"),
-                request.form.get("zap_duration"),
-            ]
-            zap_options = [opt for opt in zap_options if opt]
-
-            scan_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-            scan_dir = os.path.join(os.getcwd(), "output", scan_time)
-            os.makedirs(scan_dir, exist_ok=True)
-
-            file_paths = {
-                'nikto_output': os.path.join(scan_dir, f"nikto_{scan_time}.json"),
-                'zap_output': os.path.join(scan_dir, f"zap_{scan_time}.json"),
-                'combined_output': os.path.join(scan_dir, f"combined_{scan_time}.json")
-            }
-
-            # Initialize and run threaded scanner
+            # Initialize scanner and run scan
             scanner = ThreadedScanner()
-            # Ensure the updated API key is used
+            file_paths = {
+                'nikto_output': os.path.join("output", f"nikto_{int(time.time())}.json"),
+                'zap_output': os.path.join("output", f"zap_{int(time.time())}.json"),
+                'combined_output': os.path.join("output", f"combined_{int(time.time())}.json")
+            }
+            
             results = scanner.run_concurrent_scan(
                 target_url, 
                 file_paths,
-                nikto_tuning=nikto_tuning,
-                zap_options=zap_options
+                nikto_tuning=request.form.get("nikto_tuning", ""),
+                zap_options=[opt for opt in request.form.getlist("zap_options") if opt]
             )
 
-            # Save results
+            # Save results and get scan ID
             saved_results = save_results(
                 target_url,
                 results.get('nikto', {}),
@@ -89,22 +75,20 @@ def scan():
                 file_paths
             )
 
-            if not saved_results:
-                return "Error saving scan results", 500
-
-            if send_email_option:
-                email_config = load_email_config()
-                if email_config:
-                    send_email(email_config, file_paths['combined_output'])
-
-            scan_id = saved_results.get('scan_id')
-            if scan_id:
-                return redirect(url_for("view_report", report_id=scan_id))
-            return redirect(url_for("result"))
+            if saved_results and 'scan_id' in saved_results:
+                # For AJAX requests, return JSON
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify({'redirect': url_for('view_report', report_id=saved_results['scan_id'])})
+                # For regular form submissions, redirect
+                return redirect(url_for('view_report', report_id=saved_results['scan_id']))
+            else:
+                raise Exception("Failed to save scan results")
 
         except Exception as e:
             print(f"[-] Scan error: {e}")
-            return f"Error during scan: {str(e)}", 500
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'error': str(e)}), 500
+            return render_template("main.html", error=str(e))
 
     return render_template("main.html")
 
@@ -160,73 +144,67 @@ def get_output():
 @app.route("/download-pdf/<report_id>")
 def download_pdf(report_id):
     try:
-        print(f"Attempting to download PDF for report ID: {report_id}")
+        print(f"[*] Starting PDF generation for report ID: {report_id}")
         pdf_type = request.args.get('type', 'complete')
         
+        # Get report data
         db_handler = DatabaseHandler()
         report = db_handler.get_report_by_id(report_id)
         
         if not report:
-            print(f"Report not found for ID: {report_id}")
-            return "Report not found", 404
+            print(f"[-] Report not found for ID: {report_id}")
+            return jsonify({"error": "Report not found"}), 404
 
-        # Load results from output files
-        output_dir = report.get('scan_files', {}).get('output_dir')
-        if not output_dir or not os.path.exists(output_dir):
-            return "Scan output files not found", 404
+        # Prepare scan results for PDF generation
+        scan_results = {
+            'timestamp': report['timestamp'].strftime('%Y-%m-%d %H:%M:%S'),
+            'target_url': report['target_url'],
+            'metrics': report.get('metrics', {}),
+            'summary': report.get('summary', {}),
+            'nikto_results': report.get('nikto_results', {}),
+            'zap_results': report.get('zap_results', {})
+        }
 
-        try:
-            # Load combined results
-            combined_file = os.path.join(output_dir, os.listdir(output_dir)[0])  # Get first file
-            with open(combined_file, 'r') as f:
-                scan_results = json.load(f)
-                
-            # Merge MongoDB metadata with scan results
-            scan_results.update({
-                'timestamp': report['timestamp'],
-                'target_url': report['target_url'],
-                'metrics': report['metrics'],
-                'summary': report['summary']
-            })
+        # Create PDF file name and path
+        pdf_filename = f"webassure_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        temp_dir = tempfile.mkdtemp()  # Create a unique temp directory
+        pdf_path = os.path.join(temp_dir, pdf_filename)
 
-            # Create temporary file for PDF
-            pdf_filename = f"zapnik_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-            temp_dir = tempfile.gettempdir()
-            pdf_path = os.path.join(temp_dir, pdf_filename)
+        print(f"[*] Generating PDF: {pdf_path}")
+        success = generate_pdf_report(scan_results, pdf_path, pdf_type)
 
-            print(f"Generating PDF with type: {pdf_type}")
-            if generate_pdf_report(scan_results, pdf_path, pdf_type):
+        if success and os.path.exists(pdf_path):
+            print("[+] PDF generated successfully")
+            try:
                 response = send_file(
                     pdf_path,
                     mimetype='application/pdf',
                     as_attachment=True,
                     download_name=pdf_filename
                 )
-                
-                # Clean up in a separate thread to avoid file in use error
-                def cleanup():
-                    time.sleep(1)  # Wait for file to be sent
-                    try:
-                        if os.path.exists(pdf_path):
-                            os.unlink(pdf_path)
-                    except Exception as e:
-                        print(f"[-] Error cleaning up PDF file: {e}")
-                
-                import threading
-                threading.Thread(target=cleanup).start()
-                
                 return response
-            else:
-                return "Failed to generate PDF report", 500
-
-        except Exception as e:
-            print(f"[-] Error reading scan results: {e}")
-            return "Error reading scan results", 500
+            except Exception as e:
+                print(f"[-] Error sending file: {e}")
+                return jsonify({"error": "Failed to send PDF"}), 500
+            finally:
+                # Clean up temp directory in a separate thread
+                def cleanup():
+                    time.sleep(1)
+                    try:
+                        import shutil
+                        shutil.rmtree(temp_dir)
+                    except Exception as e:
+                        print(f"[-] Cleanup error: {e}")
+                
+                threading.Thread(target=cleanup).start()
+        else:
+            print("[-] PDF generation failed")
+            return jsonify({"error": "Failed to generate PDF"}), 500
 
     except Exception as e:
         print(f"[-] Error in download_pdf: {e}")
-        print(traceback.format_exc())
-        return "Error generating report", 500
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 def load_email_config():
     try:

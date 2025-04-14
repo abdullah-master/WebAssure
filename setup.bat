@@ -1,12 +1,12 @@
-REM filepath: C:\Users\abdul\OneDrive\Desktop\NOTES\PBL2\setup.bat
+REM filepath: C:\Users\laxmi\OneDrive\Desktop\PBL2\setup.bat
 @echo off
-echo Setting up ZapNik Scanner...
-
+echo Setting up WebAssure Scanner...
 
 echo Installing required Python packages...
-pip install pymongo flask python-dotenv
+pip install pymongo flask python-dotenv fpdf requests
 
-
+echo Setting up fonts...
+python setup_fonts.py
 
 echo Starting the application...
 python app.py

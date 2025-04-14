@@ -1,0 +1,178 @@
+{
+    "scan_status": "completed",
+    "metadata": {
+        "programName": "OWASP ZAP",
+        "version": "2.16.0",
+        "generated": "2025-04-12 13:08:50",
+        "site": {
+            "name": "https://example.com/",
+            "host": "example.com",
+            "port": "443",
+            "ssl": "true"
+        }
+    },
+    "alerts": [
+        {
+            "name": "Missing Anti-clickjacking Header",
+            "risk": "Medium",
+            "confidence": "Medium",
+            "description": "The response does not protect against 'ClickJacking' attacks. It should include either Content-Security-Policy with 'frame-ancestors' directive or X-Frame-Options.",
+            "solution": "Modern Web browsers support the Content-Security-Policy and X-Frame-Options HTTP headers. Ensure one of them is set on all web pages returned by your site/app.\nIf you expect the page to be framed only by pages on your server (e.g. it's part of a FRAMESET) then you'll want to use SAMEORIGIN, otherwise if you never expect the page to be framed, you should use DENY. Alternatively consider implementing Content Security Policy's \"frame-ancestors\" directive.",
+            "reference": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options",
+            "url": "https://example.com/",
+            "param": "x-frame-options",
+            "evidence": "",
+            "cweid": "1021",
+            "wascid": "15"
+        },
+        {
+            "name": "Re-examine Cache-control Directives",
+            "risk": "Informational",
+            "confidence": "Low",
+            "description": "The cache-control header has not been set properly or is missing, allowing the browser and proxies to cache content. For static assets like css, js, or image files this might be intended, however, the resources should be reviewed to ensure that no sensitive content will be cached.",
+            "solution": "For secure content, ensure the cache-control HTTP header is set with \"no-cache, no-store, must-revalidate\". If an asset should be cached consider setting the directives \"public, max-age, immutable\".",
+            "reference": "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html#web-content-caching\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control\nhttps://grayduck.mn/2021/09/13/cache-control-recommendations/",
+            "url": "https://example.com/",
+            "param": "cache-control",
+            "evidence": "max-age=3028",
+            "cweid": "525",
+            "wascid": "13"
+        },
+        {
+            "name": "Content Security Policy (CSP) Header Not Set",
+            "risk": "Medium",
+            "confidence": "High",
+            "description": "Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross Site Scripting (XSS) and data injection attacks. These attacks are used for everything from data theft to site defacement or distribution of malware. CSP provides a set of standard HTTP headers that allow website owners to declare approved sources of content that browsers should be allowed to load on that page \u2014 covered types are JavaScript, CSS, HTML frames, fonts, images and embeddable objects such as Java applets, ActiveX, audio and video files.",
+            "solution": "Ensure that your web server, application server, load balancer, etc. is configured to set the Content-Security-Policy header.",
+            "reference": "https://developer.mozilla.org/en-US/docs/Web/Security/CSP/Introducing_Content_Security_Policy\nhttps://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html\nhttps://www.w3.org/TR/CSP/\nhttps://w3c.github.io/webappsec-csp/\nhttps://web.dev/articles/csp\nhttps://caniuse.com/#feat=contentsecuritypolicy\nhttps://content-security-policy.com/",
+            "url": "https://example.com/",
+            "param": "",
+            "evidence": "",
+            "cweid": "693",
+            "wascid": "15"
+        },
+        {
+            "name": "Strict-Transport-Security Header Not Set",
+            "risk": "Low",
+            "confidence": "High",
+            "description": "HTTP Strict Transport Security (HSTS) is a web security policy mechanism whereby a web server declares that complying user agents (such as a web browser) are to interact with it using only secure HTTPS connections (i.e. HTTP layered over TLS/SSL). HSTS is an IETF standards track protocol and is specified in RFC 6797.",
+            "solution": "Ensure that your web server, application server, load balancer, etc. is configured to enforce Strict-Transport-Security.",
+            "reference": "https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Strict_Transport_Security_Cheat_Sheet.html\nhttps://owasp.org/www-community/Security_Headers\nhttps://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security\nhttps://caniuse.com/stricttransportsecurity\nhttps://datatracker.ietf.org/doc/html/rfc6797",
+            "url": "https://example.com/",
+            "param": "",
+            "evidence": "",
+            "cweid": "319",
+            "wascid": "15"
+        },
+        {
+            "name": "X-Content-Type-Options Header Missing",
+            "risk": "Low",
+            "confidence": "Medium",
+            "description": "The Anti-MIME-Sniffing header X-Content-Type-Options was not set to 'nosniff'. This allows older versions of Internet Explorer and Chrome to perform MIME-sniffing on the response body, potentially causing the response body to be interpreted and displayed as a content type other than the declared content type. Current (early 2014) and legacy versions of Firefox will use the declared content type (if one is set), rather than performing MIME-sniffing.",
+            "solution": "Ensure that the application/web server sets the Content-Type header appropriately, and that it sets the X-Content-Type-Options header to 'nosniff' for all web pages.\nIf possible, ensure that the end user uses a standards-compliant and modern web browser that does not perform MIME-sniffing at all, or that can be directed by the web application/web server to not perform MIME-sniffing.",
+            "reference": "https://learn.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/compatibility/gg622941(v=vs.85)\nhttps://owasp.org/www-community/Security_Headers",
+            "url": "https://example.com/",
+            "param": "x-content-type-options",
+            "evidence": "",
+            "cweid": "693",
+            "wascid": "15"
+        },
+        {
+            "name": "Content Security Policy (CSP) Header Not Set",
+            "risk": "Medium",
+            "confidence": "High",
+            "description": "Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross Site Scripting (XSS) and data injection attacks. These attacks are used for everything from data theft to site defacement or distribution of malware. CSP provides a set of standard HTTP headers that allow website owners to declare approved sources of content that browsers should be allowed to load on that page \u2014 covered types are JavaScript, CSS, HTML frames, fonts, images and embeddable objects such as Java applets, ActiveX, audio and video files.",
+            "solution": "Ensure that your web server, application server, load balancer, etc. is configured to set the Content-Security-Policy header.",
+            "reference": "https://developer.mozilla.org/en-US/docs/Web/Security/CSP/Introducing_Content_Security_Policy\nhttps://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html\nhttps://www.w3.org/TR/CSP/\nhttps://w3c.github.io/webappsec-csp/\nhttps://web.dev/articles/csp\nhttps://caniuse.com/#feat=contentsecuritypolicy\nhttps://content-security-policy.com/",
+            "url": "https://example.com/robots.txt",
+            "param": "",
+            "evidence": "",
+            "cweid": "693",
+            "wascid": "15"
+        },
+        {
+            "name": "Content Security Policy (CSP) Header Not Set",
+            "risk": "Medium",
+            "confidence": "High",
+            "description": "Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross Site Scripting (XSS) and data injection attacks. These attacks are used for everything from data theft to site defacement or distribution of malware. CSP provides a set of standard HTTP headers that allow website owners to declare approved sources of content that browsers should be allowed to load on that page \u2014 covered types are JavaScript, CSS, HTML frames, fonts, images and embeddable objects such as Java applets, ActiveX, audio and video files.",
+            "solution": "Ensure that your web server, application server, load balancer, etc. is configured to set the Content-Security-Policy header.",
+            "reference": "https://developer.mozilla.org/en-US/docs/Web/Security/CSP/Introducing_Content_Security_Policy\nhttps://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html\nhttps://www.w3.org/TR/CSP/\nhttps://w3c.github.io/webappsec-csp/\nhttps://web.dev/articles/csp\nhttps://caniuse.com/#feat=contentsecuritypolicy\nhttps://content-security-policy.com/",
+            "url": "https://example.com/sitemap.xml",
+            "param": "",
+            "evidence": "",
+            "cweid": "693",
+            "wascid": "15"
+        },
+        {
+            "name": "Strict-Transport-Security Header Not Set",
+            "risk": "Low",
+            "confidence": "High",
+            "description": "HTTP Strict Transport Security (HSTS) is a web security policy mechanism whereby a web server declares that complying user agents (such as a web browser) are to interact with it using only secure HTTPS connections (i.e. HTTP layered over TLS/SSL). HSTS is an IETF standards track protocol and is specified in RFC 6797.",
+            "solution": "Ensure that your web server, application server, load balancer, etc. is configured to enforce Strict-Transport-Security.",
+            "reference": "https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Strict_Transport_Security_Cheat_Sheet.html\nhttps://owasp.org/www-community/Security_Headers\nhttps://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security\nhttps://caniuse.com/stricttransportsecurity\nhttps://datatracker.ietf.org/doc/html/rfc6797",
+            "url": "https://example.com/robots.txt",
+            "param": "",
+            "evidence": "",
+            "cweid": "319",
+            "wascid": "15"
+        },
+        {
+            "name": "Re-examine Cache-control Directives",
+            "risk": "Informational",
+            "confidence": "Low",
+            "description": "The cache-control header has not been set properly or is missing, allowing the browser and proxies to cache content. For static assets like css, js, or image files this might be intended, however, the resources should be reviewed to ensure that no sensitive content will be cached.",
+            "solution": "For secure content, ensure the cache-control HTTP header is set with \"no-cache, no-store, must-revalidate\". If an asset should be cached consider setting the directives \"public, max-age, immutable\".",
+            "reference": "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html#web-content-caching\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control\nhttps://grayduck.mn/2021/09/13/cache-control-recommendations/",
+            "url": "https://example.com/",
+            "param": "cache-control",
+            "evidence": "max-age=3026",
+            "cweid": "525",
+            "wascid": "13"
+        },
+        {
+            "name": "Strict-Transport-Security Header Not Set",
+            "risk": "Low",
+            "confidence": "High",
+            "description": "HTTP Strict Transport Security (HSTS) is a web security policy mechanism whereby a web server declares that complying user agents (such as a web browser) are to interact with it using only secure HTTPS connections (i.e. HTTP layered over TLS/SSL). HSTS is an IETF standards track protocol and is specified in RFC 6797.",
+            "solution": "Ensure that your web server, application server, load balancer, etc. is configured to enforce Strict-Transport-Security.",
+            "reference": "https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Strict_Transport_Security_Cheat_Sheet.html\nhttps://owasp.org/www-community/Security_Headers\nhttps://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security\nhttps://caniuse.com/stricttransportsecurity\nhttps://datatracker.ietf.org/doc/html/rfc6797",
+            "url": "https://example.com/sitemap.xml",
+            "param": "",
+            "evidence": "",
+            "cweid": "319",
+            "wascid": "15"
+        },
+        {
+            "name": "Re-examine Cache-control Directives",
+            "risk": "Informational",
+            "confidence": "Low",
+            "description": "The cache-control header has not been set properly or is missing, allowing the browser and proxies to cache content. For static assets like css, js, or image files this might be intended, however, the resources should be reviewed to ensure that no sensitive content will be cached.",
+            "solution": "For secure content, ensure the cache-control HTTP header is set with \"no-cache, no-store, must-revalidate\". If an asset should be cached consider setting the directives \"public, max-age, immutable\".",
+            "reference": "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html#web-content-caching\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control\nhttps://grayduck.mn/2021/09/13/cache-control-recommendations/",
+            "url": "https://example.com/",
+            "param": "cache-control",
+            "evidence": "max-age=644",
+            "cweid": "525",
+            "wascid": "13"
+        },
+        {
+            "name": "Re-examine Cache-control Directives",
+            "risk": "Informational",
+            "confidence": "Low",
+            "description": "The cache-control header has not been set properly or is missing, allowing the browser and proxies to cache content. For static assets like css, js, or image files this might be intended, however, the resources should be reviewed to ensure that no sensitive content will be cached.",
+            "solution": "For secure content, ensure the cache-control HTTP header is set with \"no-cache, no-store, must-revalidate\". If an asset should be cached consider setting the directives \"public, max-age, immutable\".",
+            "reference": "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html#web-content-caching\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control\nhttps://grayduck.mn/2021/09/13/cache-control-recommendations/",
+            "url": "https://example.com/",
+            "param": "cache-control",
+            "evidence": "max-age=642",
+            "cweid": "525",
+            "wascid": "13"
+        }
+    ],
+    "summary": {
+        "total_alerts": 12,
+        "high_risks": 0,
+        "medium_risks": 4,
+        "low_risks": 4
+    }
+}

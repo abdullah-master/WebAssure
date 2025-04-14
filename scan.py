@@ -6,7 +6,7 @@ from zapv2 import ZAPv2
 import time
 import datetime
 
-ZAP_API_KEY = 'vet7sjahc5cn2i88mbs5krrln4'  # Updated API key
+ZAP_API_KEY = 'qv8j35dm4mu521ihth60imjbu3'  # Updated API key
 ZAP_ADDRESS = '127.0.0.1'
 ZAP_PORT = '8080'
 
@@ -28,21 +28,17 @@ def run_nikto(target_url, output_file, tuning_options=""):
         nikto_path = "C:\\Program Files\\nikto\\program\\nikto.pl"
         perl_path = "C:\\Strawberry\\perl\\bin\\perl.exe"
         
-        # Base command with optimizations
+        # Updated command with SSL support and JSON output
         nikto_command = [
             perl_path,
             nikto_path,
             "-h", target_url,
-            "-Format", "txt",
+            "-ssl",  # Add SSL support
+            "-Format", "json",  # Use JSON format
             "-o", os.path.abspath(output_file),
-            "-Tuning", "123",
-            "-mutate", "1",
-            "-Display", "V"
+            "-Plugins", "@@DEFAULT;tests(,all)",  # Updated from -mutate
+            "-Tuning", tuning_options if tuning_options else "123"
         ]
-
-        # Add any additional tuning options
-        if tuning_options:
-            nikto_command.extend(["-Tuning", tuning_options])
 
         print(f"[*] Executing command: {' '.join(nikto_command)}")
         
@@ -433,10 +429,6 @@ def save_results(target_url, nikto_results, zap_results, file_paths):
             'zap_results': zap_results
         }
 
-        # Save combined results
-        with open(file_paths['combined_output'], 'w') as f:
-            json.dump(combined_results, f, indent=4)
-
         # Save to MongoDB
         try:
             db_handler = DatabaseHandler()
@@ -446,10 +438,19 @@ def save_results(target_url, nikto_results, zap_results, file_paths):
                 nikto_results=nikto_results,
                 zap_results=zap_results
             )
+            if not doc_id:
+                raise Exception("Failed to get document ID from MongoDB")
+                
+            # Ensure scan_id is included in the return value
             combined_results['scan_id'] = str(doc_id)
+            
         except Exception as e:
             print(f"[-] MongoDB save error: {e}")
-            # Continue even if MongoDB fails
+            return None
+
+        # Save combined results to file
+        with open(file_paths['combined_output'], 'w') as f:
+            json.dump(combined_results, f, indent=4)
 
         return combined_results
 

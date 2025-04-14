@@ -625,5 +625,41 @@ header p {
             });
         });
     </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const scanForm = document.getElementById("scan-form");
+            const scanOverlay = document.getElementById("scan-overlay");
+            const statusText = document.getElementById("scan-status-text");
+
+            scanForm.addEventListener("submit", function (event) {
+                event.preventDefault();
+                scanOverlay.style.display = "block";
+                
+                fetch(scanForm.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: new FormData(scanForm)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    }
+                })
+                .catch(error => {
+                    statusText.textContent = "Error: " + error.message;
+                    setTimeout(() => {
+                        scanOverlay.style.display = "none";
+                    }, 3000);
+                });
+            });
+        });
+    </script>
 </body>
 </html>

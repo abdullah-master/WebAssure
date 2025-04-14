@@ -2,6 +2,39 @@ from fpdf import FPDF
 import json
 from datetime import datetime
 import traceback
+import os
+import re
+
+def sanitize_text(text):
+    """Sanitize and encode text for PDF output"""
+    if not isinstance(text, str):
+        text = str(text)
+    
+    # Replace problematic characters
+    replacements = {
+        '\u2014': '-',  # em dash
+        '\u2013': '-',  # en dash
+        '\u2018': "'",  # single quote
+        '\u2019': "'",  # single quote
+        '\u201c': '"',  # double quote
+        '\u201d': '"',  # double quote
+        '\u2026': '...', # ellipsis
+        '\u2022': '*',  # bullet
+        '\u00a0': ' ',  # non-breaking space
+        '\u00ad': '-',  # soft hyphen
+        '\xa0': ' ',    # another non-breaking space
+        '\r': ' ',      # carriage return
+        '\n': ' ',      # newline
+        '\t': ' '       # tab
+    }
+    
+    for char, replacement in replacements.items():
+        text = text.replace(char, replacement)
+    
+    # Remove any remaining non-Latin1 characters
+    text = re.sub(r'[^\x00-\xff]', '?', text)
+    
+    return text.strip()
 
 class ReportPDF(FPDF):
     def __init__(self):
@@ -28,6 +61,14 @@ class ReportPDF(FPDF):
         self.set_font('Arial', '', 11)
         self.multi_cell(0, 5, text)
         self.ln()
+
+    def cell(self, w=0, h=0, txt='', border=0, ln=0, align='', fill=False, link=''):
+        txt = sanitize_text(txt)
+        super().cell(w, h, txt, border, ln, align, fill, link)
+
+    def multi_cell(self, w, h, txt='', border=0, align='J', fill=False):
+        txt = sanitize_text(txt)
+        super().multi_cell(w, h, txt, border, align, fill)
 
 def create_pdf_report(scan_results, pdf_type='complete'):
     try:
@@ -312,20 +353,24 @@ def add_affected_points(pdf, scan_results):
             pdf.ln(2)
 
 def add_finding_to_pdf(pdf, finding, is_zap=True):
-    pdf.set_font('Arial', 'B', 10)
-    if is_zap:
-        risk_level = finding.get('risk', 'Unknown')
-        pdf.cell(0, 8, f"Finding: {finding.get('name', 'N/A')} ({risk_level})", 0, 1)
-        pdf.set_font('Arial', '', 9)
-        pdf.multi_cell(0, 5, f"Description: {finding.get('description', 'N/A')}")
-        pdf.multi_cell(0, 5, f"Solution: {finding.get('solution', 'N/A')}")
-    else:
-        pdf.cell(0, 8, f"ID: {finding.get('id', 'N/A')}", 0, 1)
-        pdf.set_font('Arial', '', 9)
-        pdf.multi_cell(0, 5, f"Finding: {finding.get('msg', 'N/A')}")
-        if finding.get('references'):
-            pdf.multi_cell(0, 5, f"References: {finding['references']}")
-    pdf.ln(5)
+    try:
+        pdf.set_font('Arial', 'B', 10)
+        if is_zap:
+            risk_level = finding.get('risk', 'Unknown')
+            pdf.cell(0, 8, f"Finding: {sanitize_text(finding.get('name', 'N/A'))} ({risk_level})", 0, 1)
+            pdf.set_font('Arial', '', 9)
+            pdf.multi_cell(0, 5, f"Description: {sanitize_text(finding.get('description', 'N/A'))}")
+            pdf.multi_cell(0, 5, f"Solution: {sanitize_text(finding.get('solution', 'N/A'))}")
+        else:
+            pdf.cell(0, 8, f"ID: {sanitize_text(finding.get('id', 'N/A'))}", 0, 1)
+            pdf.set_font('Arial', '', 9)
+            pdf.multi_cell(0, 5, f"Finding: {sanitize_text(finding.get('msg', 'N/A'))}")
+            if finding.get('references'):
+                pdf.multi_cell(0, 5, f"References: {sanitize_text(finding['references'])}")
+        pdf.ln(5)
+    except Exception as e:
+        print(f"Error adding finding to PDF: {e}")
+        # Continue with next finding
 
 def generate_pdf_report(scan_results, output_path, pdf_type='complete'):
     try:

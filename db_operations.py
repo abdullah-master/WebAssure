@@ -81,8 +81,11 @@ class DatabaseHandler:
 
             # Insert into MongoDB
             result = self.collection.insert_one(document)
+            if not result.inserted_id:
+                raise Exception("Failed to get inserted document ID")
+
             print(f"[+] Saved scan results to MongoDB with ID: {result.inserted_id}")
-            return result.inserted_id
+            return str(result.inserted_id)  # Convert ObjectId to string
 
         except Exception as e:
             print(f"[-] Error saving to MongoDB: {e}")

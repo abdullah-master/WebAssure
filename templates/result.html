@@ -72,7 +72,7 @@
                                font-medium shadow-lg shadow-purple-400/30">
                     OWASP ZAP Results
                 </button>
-                <button onclick="window.location.href='{{ url_for('landing') }}'" 
+                <button onclick="window.location.href='/'" 
                         class="px-6 py-3 bg-gradient-to-r from-blue-400 to-cyan-500 text-white rounded-lg
                                hover:from-blue-500 hover:to-cyan-600 transform hover:scale-105 transition-all
                                font-medium shadow-lg shadow-blue-400/30">
@@ -217,6 +217,52 @@
                     showErrorMessage('Failed to load scan results');
                 });
         });
+
+        // Add downloadPDF function
+        function downloadPDF() {
+            const reportId = window.location.pathname.split('/').pop();
+            const pdfType = document.getElementById('pdf-type').value;
+            const downloadUrl = `/download-pdf/${reportId}?type=${pdfType}`;
+
+            // Show loading state
+            const downloadButton = document.querySelector('button[onclick="downloadPDF()"]');
+            const originalText = downloadButton.innerText;
+            downloadButton.innerText = 'Generating PDF...';
+            downloadButton.disabled = true;
+
+            // Use fetch to check for errors
+            fetch(downloadUrl)
+                .then(async response => {
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'PDF generation failed');
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    if (blob.size === 0) {
+                        throw new Error('Generated PDF is empty');
+                    }
+                    // Create and trigger download
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `webassure_report_${new Date().toISOString().slice(0,10)}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                })
+                .catch(error => {
+                    console.error('Download error:', error);
+                    alert('Error: ' + (error.message || 'Failed to generate PDF. Please try again.'));
+                })
+                .finally(() => {
+                    // Reset button state
+                    downloadButton.innerText = originalText;
+                    downloadButton.disabled = false;
+                });
+        }
 
         function updateSummaryMetrics(metrics) {
             if (metrics.zap) {
