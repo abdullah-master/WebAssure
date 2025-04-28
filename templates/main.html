@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebAssure Scanner - Scan Options</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root {
+            --bg-dark: #0d1117;
+            --accent-neon: #00ffcc;
+            --alert-red: #ff4d4d;
+            --warning-yellow: #ffc107;
+            --secure-green: #00e676;
+            --text-light: #e5e5e5;
+        }
+        
+        body {
+            background-color: var(--bg-dark);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-light);
+        }
+        
+        h1, h2, h3, h4, h5, h6, .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .font-fira {
+            font-family: 'Fira Code', monospace;
+        }
+        
+        .glass-panel {
+            background: rgba(13, 17, 23, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 204, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .neon-glow {
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+        }
+        
+        .neon-glow:hover {
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+        }
+        
+        .hologram-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+        
+        .hologram-card:hover {
+            transform: translateY(-5px) rotateX(5deg);
+            box-shadow: 0 10px 30px rgba(0, 255, 204, 0.2);
+        }
+        
+        .terminal {
+            background-color: #000;
+            border: 1px solid var(--accent-neon);
+            font-family: 'Fira Code', monospace;
+            color: var(--accent-neon);
+            padding: 1rem;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .terminal::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 204, 0.1), transparent);
+            animation: scan 2s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .blink {
+            animation: blink 1s step-end infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        /* WiFi Loader Animation */
+        #wifi-loader {
+            display: none;
+            --background: #00ffcc;
+            --front-color: #0d1117;
+            --back-color: rgba(0, 255, 204, 0.2);
+            --text-color: #e5e5e5;
+            width: 64px;
+            height: 64px;
+            border-radius: 50px;
+            position: fixed; 
+            top: 50%; 
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8); 
+            z-index: 9999; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #wifi-loader svg {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #wifi-loader svg circle {
+            position: absolute;
+            fill: none;
+            stroke-width: 6px;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transform: rotate(-100deg);
+            transform-origin: center;
+        }
+        
+        #wifi-loader svg circle.back {
+            stroke: var(--back-color);
+        }
+        
+        #wifi-loader svg circle.front {
+            stroke: var(--front-color);
+        }
+        
+        #wifi-loader svg.circle-outer {
+            height: 86px;
+            width: 86px;
+        }
+        
+        #wifi-loader svg.circle-outer circle {
+            stroke-dasharray: 62.75 188.25;
+        }
+        
+        #wifi-loader svg.circle-outer circle.back {
+            animation: circle-outer135 1.8s ease infinite 0.3s;
+        }
+        
+        #wifi-loader svg.circle-outer circle.front {
+            animation: circle-outer135 1.8s ease infinite 0.15s;
+        }
+        
+        #wifi-loader svg.circle-middle {
+            height: 60px;
+            width: 60px;
+        }
+        
+        #wifi-loader svg.circle-middle circle {
+            stroke-dasharray: 42.5 127.5;
+        }
+        
+        #wifi-loader svg.circle-middle circle.back {
+            animation: circle-middle6123 1.8s ease infinite 0.25s;
+        }
+        
+        #wifi-loader svg.circle-middle circle.front {
+            animation: circle-middle6123 1.8s ease infinite 0.1s;
+        }
+        
+        #wifi-loader svg.circle-inner {
+            height: 34px;
+            width: 34px;
+        }
+        
+        #wifi-loader svg.circle-inner circle {
+            stroke-dasharray: 22 66;
+        }
+        
+        #wifi-loader svg.circle-inner circle.back {
+            animation: circle-inner162 1.8s ease infinite 0.2s;
+        }
+        
+        #wifi-loader svg.circle-inner circle.front {
+            animation: circle-inner162 1.8s ease infinite 0.05s;
+        }
+        
+        #wifi-loader .text {
+            position: absolute;
+            bottom: -40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-transform: lowercase;
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.2px;
+        }
+        
+        #wifi-loader .text::before,
+        #wifi-loader .text::after {
+            content: attr(data-text);
+        }
+        
+        #wifi-loader .text::before {
+            color: var(--text-color);
+        }
+        
+        #wifi-loader .text::after {
+            color: var(--front-color);
+            animation: text-animation76 3.6s ease infinite;
+            position: absolute;
+            left: 0;
+        }
+        
+        @keyframes circle-outer135 {
+            0% {
+                stroke-dashoffset: 25;
+            }
+        
+            25% {
+                stroke-dashoffset: 0;
+            }
+        
+            65% {
+                stroke-dashoffset: 301;
+            }
+        
+            80% {
+                stroke-dashoffset: 276;
+            }
+        
+            100% {
+                stroke-dashoffset: 276;
+            }
+        }
+        
+        @keyframes circle-middle6123 {
+            0% {
+                stroke-dashoffset: 17;
+            }
+        
+            25% {
+                stroke-dashoffset: 0;
+            }
+        
+            65% {
+                stroke-dashoffset: 204;
+            }
+        
+            80% {
+                stroke-dashoffset: 187;
+            }
+        
+            100% {
+                stroke-dashoffset: 187;
+            }
+        }
+        
+        @keyframes circle-inner162 {
+            0% {
+                stroke-dashoffset: 9;
+            }
+        
+            25% {
+                stroke-dashoffset: 0;
+            }
+        
+            65% {
+                stroke-dashoffset: 106;
+            }
+        
+            80% {
+                stroke-dashoffset: 97;
+            }
+        
+            100% {
+                stroke-dashoffset: 97;
+            }
+        }
+        
+        @keyframes text-animation76 {
+            0% {
+                clip-path: inset(0 100% 0 0);
+            }
+        
+            50% {
+                clip-path: inset(0);
+            }
+        
+            100% {
+                clip-path: inset(0 0 0 100%);
+            }
+        }
+        
+       
+        
+        /* Removed WiFi Loader Animation styles */
+        
+        .scan-form {
+            max-width: 600px;
+            margin: 1.5rem auto;
+            padding: 1.25rem;
+            background: rgba(13, 17, 23, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            border-radius: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 0.8rem;
+        }
+        
+        .form-label {
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+            display: block;
+            color: var(--accent-neon);
+            font-weight: 500;
+        }
+        
+        input[type="text"], select {
+            width: 100%;
+            padding: 0.5rem;
+            font-size: 0.85rem;
+            background: rgba(13, 17, 23, 0.8);
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            color: var(--text-light);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="text"]:focus, select:focus {
+            border-color: var(--accent-neon);
+            box-shadow: 0 0 0 2px rgba(0, 255, 204, 0.2);
+            outline: none;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem;
+            background: rgba(13, 17, 23, 0.9);
+            border-left: 4px solid var(--accent-neon);
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Cyber Grid Background -->
+    <div class="fixed inset-0 z-0 overflow-hidden">
+        <div class="absolute inset-0" style="background-image: linear-gradient(rgba(0, 255, 204, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 204, 0.05) 1px, transparent 1px); background-size: 30px 30px;"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-[#0d1117]"></div>
+    </div>
+
+    <!-- Removed WiFi Loader div -->
+    
+    <div class="relative z-10">
+        <!-- Navigation Bar -->
+        <nav class="glass-panel border-b border-[#00ffcc]/10">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <a href="{{ url_for('landing') }}" class="text-2xl font-orbitron font-bold text-[#00ffcc]">
+                            Web<span class="text-white">Assure</span>
+                        </a>
+                    </div>
+                    <div class="hidden md:flex items-center space-x-8">
+                        <a href="{{ url_for('landing') }}" class="text-[#e5e5e5] hover:text-[#00ffcc] transition-colors font-medium">Home</a>
+                        <a href="{{ url_for('about') }}" class="text-[#e5e5e5] hover:text-[#00ffcc] transition-colors font-medium">About</a>
+                        <a href="{{ url_for('contact') }}" class="text-[#e5e5e5] hover:text-[#00ffcc] transition-colors font-medium">Contact</a>
+                        <a href="{{ url_for('landing') }}#previous-scans" class="text-[#e5e5e5] hover:text-[#00ffcc] transition-colors font-medium">Previous Scans</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="container mx-auto px-4 py-12">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="bg-{{ category }}/10 border border-{{ category }} text-{{ category }} px-4 py-3 rounded mb-6">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <!-- Header Section -->
+            <div class="text-center mb-12">
+                <h1 class="text-4xl font-orbitron font-bold text-[#00ffcc] mb-4">
+                    SECURITY <span class="text-white">SCAN</span>
+                </h1>
+                <p class="text-[#e5e5e5] text-xl max-w-2xl mx-auto">
+                    Configure your scan parameters and initiate a comprehensive security assessment
+                </p>
+            </div>
+            
+            <!-- Terminal Effect -->
+            <div class="terminal max-w-2xl mx-auto mb-8">
+                <div class="font-fira">
+                    <span class="text-[#00ffcc]">$</span> <span class="text-white">webassure</span> <span class="text-[#00ffcc]">--config</span><br>
+                    <span class="text-[#00ffcc]">Loading configuration options...</span><br>
+                    <span class="text-[#00ffcc]">Initializing scan modules...</span><br>
+                    <span class="text-[#00ffcc]">Ready to configure<span class="blink">_</span></span>
+                </div>
+            </div>
+            
+            <!-- Scan Form -->
+            <div class="scan-form glass-panel">
+                <h2 class="text-2xl font-orbitron font-bold text-white mb-6 text-center">SCAN CONFIGURATION</h2>
+                
+                <form action="{{ url_for('scan') }}" method="post" id="scanForm" onsubmit="return startScan(event)">
+                    <div class="form-group">
+                        <label for="target_url" class="form-label">TARGET URL</label>
+                        <input type="text" id="target_url" name="target_url" placeholder="https://example.com" required
+                               class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg text-white focus:border-[#00ffcc] focus:ring-2 focus:ring-[#00ffcc]/20">
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="form-group">
+                            <label for="scan_type" class="form-label">SCAN TYPE</label>
+                            <select id="scan_type" name="scan_type" class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg text-white focus:border-[#00ffcc] focus:ring-2 focus:ring-[#00ffcc]/20">
+                                <option value="full">Full Security Scan</option>
+                                <option value="quick">Quick Vulnerability Check</option>
+                                <option value="custom">Custom Configuration</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="scan_depth" class="form-label">SCAN DEPTH</label>
+                            <select id="scan_depth" name="scan_depth" class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg text-white focus:border-[#00ffcc] focus:ring-2 focus:ring-[#00ffcc]/20">
+                                <option value="basic">Basic (Faster)</option>
+                                <option value="standard" selected>Standard</option>
+                                <option value="deep">Deep (More Thorough)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Custom Configuration Options (Hidden by default) -->
+                    <div id="custom-options" class="hidden space-y-6 mb-6">
+                        <div class="hologram-card bg-[#0d1117]/80 p-4 rounded-lg border border-[#00ffcc]/30">
+                            <h3 class="text-lg font-orbitron font-semibold text-[#00ffcc] mb-4">Nikto Configuration</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="form-group">
+                                    <label for="nikto_tuning" class="form-label">Tuning Options</label>
+                                    <select name="nikto_tuning" id="nikto_tuning" class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg text-white focus:border-[#00ffcc] focus:ring-2 focus:ring-[#00ffcc]/20">
+                                        <option value="">None</option>
+                                        <option value="0">File Upload</option>
+                                        <option value="1">Interesting Files</option>
+                                        <option value="2">Dangerous Files</option>
+                                        <option value="3">Remote File Retrieval</option>
+                                        <option value="4">Denial of Service</option>
+                                        <option value="5">Remote Shell</option>
+                                        <option value="6">SQL Injection</option>
+                                        <option value="7">Authentication Bypass</option>
+                                        <option value="8">Software Identification</option>
+                                        <option value="9">Miscellaneous</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="nikto_timeout" class="form-label">Timeout (seconds)</label>
+                                    <input type="number" id="nikto_timeout" name="nikto_timeout" min="30" max="300" value="60" 
+                                           class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg text-white focus:border-[#00ffcc] focus:ring-2 focus:ring-[#00ffcc]/20">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="hologram-card bg-[#0d1117]/80 p-4 rounded-lg border border-[#00ffcc]/30">
+                            <h3 class="text-lg font-orbitron font-semibold text-[#00ffcc] mb-4">OWASP ZAP Configuration</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="form-group">
+                                    <label for="zap_alert" class="form-label">Alert Threshold</label>
+                                    <select id="zap_alert" name="zap_alert" class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg text-white focus:border-[#00ffcc] focus:ring-2 focus:ring-[#00ffcc]/20">
+                                        <option value="">Default</option>
+                                        <option value="HIGH">High</option>
+                                        <option value="MEDIUM">Medium</option>
+                                        <option value="LOW">Low</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="zap_depth" class="form-label">Spider Max Depth</label>
+                                    <select id="zap_depth" name="zap_depth" class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg text-white focus:border-[#00ffcc] focus:ring-2 focus:ring-[#00ffcc]/20">
+                                        <option value="">Default</option>
+                                        {% for i in range(1, 11) %}
+                                        <option value="{{ i }}">Depth {{ i }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="zap_duration" class="form-label">Spider Duration (mins)</label>
+                                    <select id="zap_duration" name="zap_duration" class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg text-white focus:border-[#00ffcc] focus:ring-2 focus:ring-[#00ffcc]/20">
+                                        <option value="">Default</option>
+                                        {% for i in range(1, 31, 5) %}
+                                        <option value="{{ i }}">{{ i }} minutes</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="zap_policy" class="form-label">Scan Policy</label>
+                                    <select id="zap_policy" name="zap_policy" class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg text-white focus:border-[#00ffcc] focus:ring-2 focus:ring-[#00ffcc]/20">
+                                        <option value="Default">Default Policy</option>
+                                        <option value="Light">Light (Fast)</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="Full">Full (Thorough)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="hologram-card bg-[#0d1117]/80 p-4 rounded-lg border border-[#00ffcc]/30">
+                            <h3 class="text-lg font-orbitron font-semibold text-[#00ffcc] mb-4">Additional Options</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="form-group">
+                                    <label class="flex items-center space-x-3">
+                                        <input type="checkbox" id="crawl_robots" name="crawl_robots" class="w-4 h-4 text-[#00ffcc] bg-[#0d1117] border-[#00ffcc]/30 rounded focus:ring-[#00ffcc]">
+                                        <span class="text-white">Follow robots.txt</span>
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="flex items-center space-x-3">
+                                        <input type="checkbox" id="exclude_urls" name="exclude_urls" class="w-4 h-4 text-[#00ffcc] bg-[#0d1117] border-[#00ffcc]/30 rounded focus:ring-[#00ffcc]">
+                                        <span class="text-white">Exclude Common URLs</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mb-6">
+                        <label class="form-label">SCAN MODULES</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex items-center p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg">
+                                <input type="checkbox" id="zap_scan" name="zap_scan" checked class="mr-3 h-4 w-4 text-[#00ffcc] focus:ring-[#00ffcc]">
+                                <label for="zap_scan" class="text-white">OWASP ZAP Scan</label>
+                            </div>
+                            <div class="flex items-center p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg">
+                                <input type="checkbox" id="nikto_scan" name="nikto_scan" checked class="mr-3 h-4 w-4 text-[#00ffcc] focus:ring-[#00ffcc]">
+                                <label for="nikto_scan" class="text-white">Nikto Web Scanner</label>
+                            </div>
+                            <div class="flex items-center p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg">
+                                <input type="checkbox" id="ssl_check" name="ssl_check" checked class="mr-3 h-4 w-4 text-[#00ffcc] focus:ring-[#00ffcc]">
+                                <label for="ssl_check" class="text-white">SSL/TLS Analysis</label>
+                            </div>
+                            <div class="flex items-center p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg">
+                                <input type="checkbox" id="headers_check" name="headers_check" checked class="mr-3 h-4 w-4 text-[#00ffcc] focus:ring-[#00ffcc]">
+                                <label for="headers_check" class="text-white">Security Headers Check</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-center">
+                        <button type="submit" class="px-8 py-4 bg-[#00ffcc] text-[#0d1117] rounded-lg font-bold text-lg transform transition-all hover:scale-105 neon-glow">
+                            INITIATE SCAN
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Scan Status Panel (hidden by default) -->
+            <div id="scanStatus" class="glass-panel p-6 rounded-lg mt-8 hidden">
+                <h3 class="text-xl font-orbitron font-bold text-white mb-4">SCAN IN PROGRESS</h3>
+                <div class="terminal mb-4">
+                    <div class="font-fira" id="scanLog">
+                        <span class="text-[#00ffcc]">$</span> <span class="text-white">webassure</span> <span class="text-[#00ffcc]">--scan</span> <span class="text-white" id="targetUrl">example.com</span><br>
+                        <span class="text-[#00ffcc]">Initializing security protocols...</span><br>
+                        <span class="text-[#00ffcc]">Loading vulnerability database...</span><br>
+                        <span class="text-[#00ffcc]">Establishing secure connection...</span><br>
+                        <span class="text-[#00ffcc]">Scan in progress<span class="blink">_</span></span>
+                    </div>
+                </div>
+                <div class="w-full bg-[#0d1117] rounded-full h-2.5 mb-4">
+                    <div class="bg-[#00ffcc] h-2.5 rounded-full" style="width: 45%"></div>
+                </div>
+                <p class="text-center text-[#e5e5e5]">Estimated time remaining: <span class="text-[#00ffcc]">2 minutes</span></p>
+            </div>
+        </main>
+        
+        <!-- Toast Notification (hidden by default) -->
+        <div class="toast" id="toast">
+            <div class="flex items-center">
+                <div class="mr-3">
+                    <svg class="w-6 h-6 text-[#00ffcc]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-medium text-white">Scan initiated</p>
+                    <p class="text-sm text-[#e5e5e5]/80">Your security scan is now in progress</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const scanForm = document.getElementById('scanForm');
+    const scanStatus = document.getElementById('scanStatus');
+    
+    scanForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Show scanning status
+        scanStatus.classList.remove('hidden');
+        
+        // Disable submit button
+        const submitButton = scanForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.innerHTML = 'SCANNING...';
+        
+        // Submit form via AJAX
+        fetch(scanForm.action, {
+            method: 'POST',
+            body: new FormData(scanForm),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+            } else {
+                throw new Error('No redirect URL received');
+            }
+        })
+        .catch(error => {
+            console.error('Scan error:', error);
+            scanStatus.classList.add('hidden');
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'INITIATE SCAN';
+            alert(error.message || 'Scan failed. Please try again.');
+        });
+    });
+});
+</script>
+</body>
+</html>

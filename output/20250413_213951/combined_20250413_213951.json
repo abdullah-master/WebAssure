@@ -1,0 +1,31 @@
+{
+    "timestamp": "2025-04-13 21:39:57",
+    "target_url": "https://demo.owasp-juice.shop/",
+    "scan_metrics": {
+        "zap": {
+            "high_risks": 0,
+            "medium_risks": 0,
+            "low_risks": 0,
+            "info_risks": 0
+        },
+        "nikto": {
+            "total_vulnerabilities": 0,
+            "high_risks": 0,
+            "medium_risks": 0,
+            "low_risks": 0
+        }
+    },
+    "file_locations": {
+        "nikto_output": "c:\\Users\\laxmi\\OneDrive\\Desktop\\PBL2\\output\\20250413_213951\\nikto_20250413_213951.json",
+        "zap_output": "c:\\Users\\laxmi\\OneDrive\\Desktop\\PBL2\\output\\20250413_213951\\zap_20250413_213951.json",
+        "combined_output": "c:\\Users\\laxmi\\OneDrive\\Desktop\\PBL2\\output\\20250413_213951\\combined_20250413_213951.json"
+    },
+    "nikto_results": {
+        "scan_status": "error",
+        "host": "https://demo.owasp-juice.shop/",
+        "error": "Nikto failed with return code 1"
+    },
+    "zap_results": {
+        "error": "ZAP connection failed"
+    }
+}

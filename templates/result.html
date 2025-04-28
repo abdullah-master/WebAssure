@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebAssure - Security Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root {
+            --bg-dark: #0d1117;
+            --accent-neon: #00ffcc;
+            --alert-red: #ff4d4d;
+            --warning-yellow: #ffc107;
+            --secure-green: #00e676;
+            --text-light: #e5e5e5;
+        }
+        
+        body {
+            background-color: var(--bg-dark);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-light);
+        }
+        
+        h1, h2, h3, h4, h5, h6, .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .font-fira {
+            font-family: 'Fira Code', monospace;
+        }
+        
+        .glass-panel {
+            background: rgba(13, 17, 23, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 204, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .neon-glow {
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+        }
+        
+        .neon-glow:hover {
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+        }
+        
+        .hologram-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+        
+        .hologram-card:hover {
+            transform: translateY(-5px) rotateX(5deg);
+            box-shadow: 0 10px 30px rgba(0, 255, 204, 0.2);
+        }
+
+        .results-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+        }
+
+        .vulnerability-card {
+            background: rgba(13, 17, 23, 0.8);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .vulnerability-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 255, 204, 0.15);
+        }
+
+        .terminal-text {
+            font-family: 'Fira Code', monospace;
+            color: var(--accent-neon);
+        }
+
+        .scan-metric {
+            background: rgba(13, 17, 23, 0.8);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .blink {
+            animation: blink 1s step-end infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .cyber-grid {
+            background-image: linear-gradient(rgba(0, 255, 204, 0.05) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(0, 255, 204, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Cyber Grid Background -->
+    <div class="fixed inset-0 z-0 overflow-hidden cyber-grid">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-[#0d1117]"></div>
+    </div>
+
+    <div class="relative z-10">
+        <!-- Navigation Bar -->
+        <nav class="glass-panel border-b border-[#00ffcc]/10">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <a href="{{ url_for('landing') }}" class="text-2xl font-orbitron font-bold text-[#00ffcc]">
+                            Web<span class="text-white">Assure</span>
+                        </a>
+                    </div>
+                    <div class="hidden md:flex items-center space-x-8">
+                        <a href="{{ url_for('landing') }}" class="text-[#e5e5e5] hover:text-[#00ffcc] transition-colors font-medium">Home</a>
+                        <a href="{{ url_for('about') }}" class="text-[#e5e5e5] hover:text-[#00ffcc] transition-colors font-medium">About</a>
+                        <a href="{{ url_for('contact') }}" class="text-[#e5e5e5] hover:text-[#00ffcc] transition-colors font-medium">Contact</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="container mx-auto px-4 py-8">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-orbitron font-bold text-[#00ffcc] mb-2">SECURITY ANALYSIS</h1>
+                <p class="text-[#e5e5e5] text-xl">Comprehensive Vulnerability Assessment Report</p>
+            </div>
+
+            <div class="glass-panel p-8">
+                <div class="flex flex-wrap justify-center gap-4 mb-8">
+                    <button id="show-nikto" 
+                            class="px-6 py-3 bg-[#0d1117] text-[#00ffcc] rounded-lg border border-[#00ffcc]/30
+                                   hover:bg-[#00ffcc]/10 transform hover:scale-105 transition-all
+                                   font-medium font-orbitron neon-glow">
+                        NIKTO SCAN RESULTS
+                    </button>
+                    <button id="show-owasp-zap" 
+                            class="px-6 py-3 bg-[#0d1117] text-[#00ffcc] rounded-lg border border-[#00ffcc]/30
+                                   hover:bg-[#00ffcc]/10 transform hover:scale-105 transition-all
+                                   font-medium font-orbitron neon-glow">
+                        OWASP ZAP RESULTS
+                    </button>
+                    <button id="back-to-dashboard" 
+                            class="px-6 py-3 bg-[#0d1117] text-[#00ffcc] rounded-lg border border-[#00ffcc]/30
+                                   hover:bg-[#00ffcc]/10 transform hover:scale-105 transition-all
+                                   font-medium font-orbitron neon-glow">
+                        BACK TO DASHBOARD
+                    </button>
+                </div>
+
+                <div class="flex justify-center gap-4 mb-8">
+                    <select id="pdf-type" 
+                            class="px-4 py-2 bg-[#0d1117] text-[#00ffcc] rounded-lg border border-[#00ffcc]/30 
+                                   focus:ring-2 focus:ring-[#00ffcc] focus:border-transparent font-fira">
+                        <option value="complete">Complete Detailed Report</option>
+                        <option value="summary">Summary Report</option>
+                        <option value="high-med">High & Medium Risks Only</option>
+                        <option value="high">High Risks Only</option>
+                        <option value="affected">Affected Points Only</option>
+                    </select>
+                    <button onclick="downloadPDF()" 
+                            class="px-6 py-2 bg-[#00ffcc] text-[#0d1117] rounded-lg
+                                   hover:bg-[#00ffcc]/90 transform hover:scale-105 transition-all
+                                   font-medium font-orbitron">
+                        DOWNLOAD PDF REPORT
+                    </button>
+                </div>
+
+                <!-- Results sections -->
+                <div id="nikto" class="section hidden">
+                    <div class="glass-panel p-6 mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="hologram-card bg-[#0d1117]/80 p-4 rounded-lg border border-[#00ffcc]/30">
+                                <h3 class="text-xl font-orbitron font-semibold text-[#00ffcc] mb-4">Scan Information</h3>
+                                <div class="space-y-2 font-fira">
+                                    <p><span class="text-[#e5e5e5]/60">Host:</span> <span id="nikto-host" class="text-white"></span></p>
+                                    <p><span class="text-[#e5e5e5]/60">IP:</span> <span id="nikto-ip" class="text-white"></span></p>
+                                    <p><span class="text-[#e5e5e5]/60">Port:</span> <span id="nikto-port" class="text-white"></span></p>
+                                    <p><span class="text-[#e5e5e5]/60">Banner:</span> <span id="nikto-banner" class="text-white"></span></p>
+                                </div>
+                            </div>
+                            <div class="hologram-card bg-[#0d1117]/80 p-4 rounded-lg border border-[#00ffcc]/30">
+                                <h3 class="text-xl font-orbitron font-semibold text-[#00ffcc] mb-4">SSL Information</h3>
+                                <div id="ssl-info" class="space-y-2 font-fira">
+                                    <!-- SSL info will be inserted here -->
+                                </div>
+                            </div>
+                        </div>
+                        <div id="nikto-content" class="space-y-4">
+                            <!-- Nikto findings will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div id="owasp-zap" class="section hidden">
+                    <div class="glass-panel p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                            <div class="hologram-card bg-[#0d1117]/80 p-4 rounded-lg border border-[#ff4d4d]/30">
+                                <h4 class="text-[#ff4d4d] text-lg font-orbitron font-semibold mb-2">High Risk</h4>
+                                <p id="zap-high" class="text-2xl font-bold text-white font-fira">0</p>
+                            </div>
+                            <div class="hologram-card bg-[#0d1117]/80 p-4 rounded-lg border border-[#ffc107]/30">
+                                <h4 class="text-[#ffc107] text-lg font-orbitron font-semibold mb-2">Medium Risk</h4>
+                                <p id="zap-medium" class="text-2xl font-bold text-white font-fira">0</p>
+                            </div>
+                            <div class="hologram-card bg-[#0d1117]/80 p-4 rounded-lg border border-[#00e676]/30">
+                                <h4 class="text-[#00e676] text-lg font-orbitron font-semibold mb-2">Low Risk</h4>
+                                <p id="zap-low" class="text-2xl font-bold text-white font-fira">0</p>
+                            </div>
+                            <div class="hologram-card bg-[#0d1117]/80 p-4 rounded-lg border border-[#00ffcc]/30">
+                                <h4 class="text-[#00ffcc] text-lg font-orbitron font-semibold mb-2">Total Alerts</h4>
+                                <p id="zap-total" class="text-2xl font-bold text-white font-fira">0</p>
+                            </div>
+                        </div>
+                        <div id="owasp-zap-content" class="space-y-4">
+                            <!-- ZAP findings will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get all necessary elements
+            const niktoButton = document.getElementById('show-nikto');
+            const owaspButton = document.getElementById('show-owasp-zap');
+            const backButton = document.getElementById('back-to-dashboard');
+            const niktoSection = document.getElementById('nikto');
+            const owaspSection = document.getElementById('owasp-zap');
+
+            // Back to dashboard button
+            backButton.addEventListener('click', () => {
+                window.location.href = '{{ url_for("landing") }}';
+            });
+
+            // Show/hide sections
+            niktoButton.addEventListener('click', () => {
+                niktoSection.classList.remove('hidden');
+                owaspSection.classList.add('hidden');
+                niktoButton.classList.add('bg-[#00ffcc]', 'text-[#0d1117]');
+                owaspButton.classList.remove('bg-[#00ffcc]', 'text-[#0d1117]');
+            });
+
+            owaspButton.addEventListener('click', () => {
+                owaspSection.classList.remove('hidden');
+                niktoSection.classList.add('hidden');
+                owaspButton.classList.add('bg-[#00ffcc]', 'text-[#0d1117]');
+                niktoButton.classList.remove('bg-[#00ffcc]', 'text-[#0d1117]');
+            });
+
+            // Function to download PDF
+            window.downloadPDF = function() {
+                const reportId = window.location.pathname.split('/').pop();
+                const pdfType = document.getElementById('pdf-type').value;
+                const downloadButton = document.querySelector('button[onclick="downloadPDF()"]');
+                const originalText = downloadButton.innerText;
+                
+                // Show loading state
+                downloadButton.innerText = 'Generating PDF...';
+                downloadButton.disabled = true;
+
+                fetch(`/download-pdf/${reportId}?type=${pdfType}`, {
+                    method: 'GET',
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('PDF generation failed');
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    // Create download link
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `webassure_report_${Date.now()}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                })
+                .catch(error => {
+                    console.error('Download error:', error);
+                    alert('Failed to generate PDF report. Please try again.');
+                })
+                .finally(() => {
+                    // Reset button state
+                    downloadButton.innerText = originalText;
+                    downloadButton.disabled = false;
+                });
+            };
+
+            // Load initial report data
+            const reportId = window.location.pathname.split('/').pop();
+            fetch(`/api/report/${reportId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    // Show OWASP ZAP section by default
+                    owaspSection.classList.remove('hidden');
+                    owaspButton.classList.add('bg-[#00ffcc]', 'text-[#0d1117]');
+
+                    // Update metrics
+                    updateMetrics(data);
+
+                    // Render results
+                    if (data.nikto_results) renderNiktoResults(data.nikto_results);
+                    if (data.zap_results) renderZapResults(data.zap_results);
+                })
+                .catch(error => {
+                    console.error('Error loading results:', error);
+                    showErrorMessage('Failed to load scan results');
+                });
+        });
+
+        function updateMetrics(data) {
+            if (data.metrics && data.metrics.zap) {
+                document.getElementById('zap-high').textContent = data.metrics.zap.high_risks || 0;
+                document.getElementById('zap-medium').textContent = data.metrics.zap.medium_risks || 0;
+                document.getElementById('zap-low').textContent = data.metrics.zap.low_risks || 0;
+                document.getElementById('zap-total').textContent = 
+                    (data.metrics.zap.high_risks || 0) + 
+                    (data.metrics.zap.medium_risks || 0) + 
+                    (data.metrics.zap.low_risks || 0);
+            }
+        }
+
+        function renderNiktoResults(data) {
+            const niktoContent = document.getElementById('nikto-content');
+            // Update basic info
+            if (data.host) document.getElementById('nikto-host').textContent = data.host;
+            if (data.ip) document.getElementById('nikto-ip').textContent = data.ip;
+            if (data.port) document.getElementById('nikto-port').textContent = data.port;
+            if (data.banner) document.getElementById('nikto-banner').textContent = data.banner;
+
+            // Update SSL info
+            const sslInfo = document.getElementById('ssl-info');
+            if (data.ssl_info && Object.keys(data.ssl_info).length > 0) {
+                sslInfo.innerHTML = Object.entries(data.ssl_info)
+                    .map(([key, value]) => `
+                        <p><span class="text-[#e5e5e5]/60">${key}:</span> 
+                           <span class="text-white">${value}</span></p>
+                    `).join('');
+            }
+
+            // Render vulnerabilities
+            if (data.vulnerabilities && data.vulnerabilities.length > 0) {
+                niktoContent.innerHTML = data.vulnerabilities.map(vuln => `
+                    <div class="vulnerability-card">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="text-white font-medium">${vuln.id || 'Unknown'}</h4>
+                            <span class="text-[#00ffcc] text-sm">${vuln.method || 'GET'}</span>
+                        </div>
+                        <p class="text-[#e5e5e5] mb-2">${vuln.msg}</p>
+                        ${vuln.references ? `
+                            <a href="${vuln.references}" target="_blank" 
+                               class="text-[#00ffcc] hover:text-[#00ffcc]/80 text-sm">
+                                View Reference
+                            </a>
+                        ` : ''}
+                    </div>
+                `).join('');
+            }
+        }
+
+        function renderZapResults(data) {
+            const zapContent = document.getElementById('owasp-zap-content');
+            if (data.alerts && data.alerts.length > 0) {
+                zapContent.innerHTML = data.alerts.map(alert => `
+                    <div class="vulnerability-card border-l-4 ${getRiskBorderClass(alert.risk)}">
+                        <div class="flex justify-between items-start mb-4">
+                            <h4 class="text-lg font-medium text-white">${alert.name}</h4>
+                            <span class="px-3 py-1 rounded-full text-sm ${getRiskClass(alert.risk)}">
+                                ${alert.risk}
+                            </span>
+                        </div>
+                        <div class="space-y-2 text-[#e5e5e5]">
+                            <p><span class="text-[#00ffcc]">Description:</span> ${alert.description}</p>
+                            <p><span class="text-[#00ffcc]">Solution:</span> ${alert.solution}</p>
+                            <p><span class="text-[#00ffcc]">URL:</span> ${alert.url}</p>
+                            ${alert.evidence ? `
+                                <p><span class="text-[#00ffcc]">Evidence:</span> ${alert.evidence}</p>
+                            ` : ''}
+                            ${alert.reference ? `
+                                <a href="${alert.reference}" target="_blank" 
+                                   class="text-[#00ffcc] hover:text-[#00ffcc]/80 block mt-2">
+                                    View Reference
+                                </a>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function getRiskBorderClass(risk) {
+            const classes = {
+                'High': 'border-[#ff4d4d]',
+                'Medium': 'border-[#ffc107]',
+                'Low': 'border-[#00e676]',
+                'Informational': 'border-[#00ffcc]'
+            };
+            return classes[risk] || 'border-[#e5e5e5]';
+        }
+
+        function getRiskClass(risk) {
+            const classes = {
+                'High': 'bg-[#ff4d4d]/20 text-[#ff4d4d]',
+                'Medium': 'bg-[#ffc107]/20 text-[#ffc107]',
+                'Low': 'bg-[#00e676]/20 text-[#00e676]',
+                'Informational': 'bg-[#00ffcc]/20 text-[#00ffcc]'
+            };
+            return classes[risk] || 'bg-[#e5e5e5]/20 text-[#e5e5e5]';
+        }
+
+        function showErrorMessage(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'bg-[#ff4d4d]/10 border border-[#ff4d4d] text-[#ff4d4d] px-4 py-3 rounded mb-6';
+            errorDiv.textContent = message;
+            document.querySelector('main').prepend(errorDiv);
+        }
+    </script>
+</body>
+</html>

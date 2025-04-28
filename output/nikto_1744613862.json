@@ -1,0 +1,5 @@
+{
+    "scan_status": "timeout",
+    "host": "https://example.com",
+    "error": "Scan exceeded timeout of 900 seconds"
+}

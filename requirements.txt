@@ -1,0 +1,5 @@
+flask==2.0.1
+requests==2.26.0
+python-owasp-zap-v2.4==0.0.20
+pymongo==4.3.3
+fpdf==1.7.2
