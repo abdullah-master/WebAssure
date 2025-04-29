@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Previous Scans - WebAssure Scanner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="min-h-screen bg-[#0d1117] text-[#e5e5e5]">
+    <nav class="glass-panel border-b border-[#00ffcc]/10">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="{{ url_for('landing') }}" class="text-2xl font-orbitron font-bold text-[#00ffcc]">
+                        Web<span class="text-white">Assure</span>
+                    </a>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="{{ url_for('landing') }}" class="text-[#e5e5e5] hover:text-[#00ffcc] transition-colors font-medium">Home</a>
+                    <a href="{{ url_for('about') }}" class="text-[#e5e5e5] hover:text-[#00ffcc] transition-colors font-medium">About</a>
+                    <a href="{{ url_for('contact') }}" class="text-[#e5e5e5] hover:text-[#00ffcc] transition-colors font-medium">Contact</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-12">
+        <h1 class="text-4xl font-orbitron font-bold text-[#00ffcc] mb-8">Previous Scans</h1>
+
+        {% if error %}
+        <div class="bg-[#ff4d4d]/10 border border-[#ff4d4d] text-[#ff4d4d] px-4 py-3 rounded mb-6">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        {% if scans %}
+            <div class="grid gap-4">
+                {% for scan in scans %}
+                <div class="glass-panel p-6 rounded-lg border border-[#00ffcc]/10 hover:border-[#00ffcc]/30 transition-colors">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xl font-semibold text-[#00ffcc]">{{ scan.target_url }}</h3>
+                            <p class="text-[#e5e5e5]/60">{{ scan.date }}</p>
+                            <div class="flex gap-3 mt-2">
+                                <span class="px-2 py-1 text-sm bg-[#ff4d4d]/20 text-[#ff4d4d] rounded">
+                                    High: {{ scan.metrics.zap.high_risks if scan.metrics and scan.metrics.zap else 0 }}
+                                </span>
+                                <span class="px-2 py-1 text-sm bg-[#ffc107]/20 text-[#ffc107] rounded">
+                                    Medium: {{ scan.metrics.zap.medium_risks if scan.metrics and scan.metrics.zap else 0 }}
+                                </span>
+                                <span class="px-2 py-1 text-sm bg-[#00e676]/20 text-[#00e676] rounded">
+                                    Low: {{ scan.metrics.zap.low_risks if scan.metrics and scan.metrics.zap else 0 }}
+                                </span>
+                            </div>
+                        </div>
+                        <a href="{{ url_for('view_report', report_id=scan.id) }}" 
+                           class="px-4 py-2 bg-[#00ffcc] text-[#0d1117] rounded-lg font-medium hover:bg-[#00ffcc]/90 transition-colors">
+                            View Report
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-12">
+                <p class="text-[#e5e5e5]/60 text-lg">No scan reports found.</p>
+                <a href="{{ url_for('scan') }}" class="inline-block mt-4 px-6 py-3 bg-[#00ffcc] text-[#0d1117] rounded-lg font-medium hover:bg-[#00ffcc]/90 transition-colors">
+                    Start New Scan
+                </a>
+            </div>
+        {% endif %}
+    </main>
+</body>
+</html>

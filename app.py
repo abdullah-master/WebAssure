@@ -137,9 +137,14 @@ def get_report_data(report_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/report/", defaults={'report_id': None})
 @app.route("/report/<report_id>")
 def view_report(report_id):
     try:
+        if not report_id:
+            # Redirect to previous scans page if no report ID provided
+            return redirect(url_for('previous_scans'))
+            
         db_handler = DatabaseHandler()
         report = db_handler.get_report_by_id(report_id)
         if report:
@@ -212,5 +217,30 @@ def about():
 def contact():
     return render_template("contact.html")
 
+@app.route('/previous-scans')
+def previous_scans():
+    try:
+        db_handler = DatabaseHandler()
+        scans = db_handler.get_scan_history()
+        
+        # Format scans for display
+        formatted_scans = []
+        for scan in scans:
+            formatted_scan = {
+                'id': str(scan['_id']),
+                'target_url': scan.get('target_url', 'Unknown URL'),
+                'date': scan.get('timestamp', datetime.now()).strftime('%Y-%m-%d %H:%M:%S'),
+                'metrics': scan.get('metrics', {
+                    'zap': {'high_risks': 0, 'medium_risks': 0, 'low_risks': 0}
+                })
+            }
+            formatted_scans.append(formatted_scan)
+            
+        return render_template('previous_scans.html', scans=formatted_scans)
+    except Exception as e:
+        print(f"Error fetching scan history: {e}")
+        return render_template('previous_scans.html', scans=[], error=f"Error loading scan history: {str(e)}")
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=3002, debug=False)
+
