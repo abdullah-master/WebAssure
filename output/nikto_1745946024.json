@@ -1,0 +1,5 @@
+{
+    "scan_status": "error",
+    "host": "https://demo.owasp-juice.shop/",
+    "error": "'str' object has no attribute 'get'"
+}

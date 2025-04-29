@@ -6,9 +6,10 @@ from zapv2 import ZAPv2
 import time
 import datetime
 
-ZAP_API_KEY = 'qv8j35dm4mu521ihth60imjbu3'  # Updated API key
-ZAP_ADDRESS = '127.0.0.1'
-ZAP_PORT = '8080'
+# ZAP configuration for connecting to running GUI instance
+ZAP_API_KEY = 'qv8j35dm4mu521ihth60imjbu3'  # Your API key from ZAP GUI
+ZAP_ADDRESS = 'localhost'  # Default ZAP GUI address
+ZAP_PORT = '8080'  # Default ZAP GUI port
 
 def load_email_config():
     try:
@@ -21,25 +22,35 @@ def load_email_config():
         return None
 
 
-def run_nikto(target_url, output_file, tuning_options=""):
+def run_nikto(target_url, output_file, config=None):
     try:
         print("[*] Running Nikto Scan...")
         
         nikto_path = "C:\\Program Files\\nikto\\program\\nikto.pl"
         perl_path = "C:\\Strawberry\\perl\\bin\\perl.exe"
         
-        # Updated command with SSL support and JSON output
+        # Build scan options based on config
+        scan_options = []
+        if config and isinstance(config, dict):
+            if config.get('tests', {}).get('sqli'):
+                scan_options.extend(['-Tuning', '9'])
+            if config.get('tests', {}).get('headers'):
+                scan_options.extend(['-Tuning', '4'])
+            if config.get('tests', {}).get('ssl'):
+                scan_options.extend(['-Tuning', '2'])
+            if config.get('tests', {}).get('auth'):
+                scan_options.extend(['-Tuning', '7'])
+        
+        # Updated command with options
         nikto_command = [
             perl_path,
             nikto_path,
             "-h", target_url,
-            "-ssl",  # Add SSL support
-            "-Format", "json",  # Use JSON format
-            "-o", os.path.abspath(output_file),
-            "-Plugins", "@@DEFAULT;tests(,all)",  # Updated from -mutate
-            "-Tuning", tuning_options if tuning_options else "123"
-        ]
-
+            "-ssl",
+            "-Format", "json",
+            "-o", os.path.abspath(output_file)
+        ] + scan_options
+        
         print(f"[*] Executing command: {' '.join(nikto_command)}")
         
         # Run process with real-time output
@@ -70,15 +81,20 @@ def run_nikto(target_url, output_file, tuning_options=""):
         if stderr:
             print("[-] Errors:", stderr)
 
-        if process.returncode != 0:
-            raise Exception(f"Nikto failed with return code {process.returncode}")
+        # Check if JSON output file exists and is valid
+        try:
+            if os.path.exists(output_file):
+                with open(output_file, 'r') as f:
+                    results = json.load(f)
+                    if isinstance(results, dict):
+                        results['scan_status'] = 'completed'
+                        return results
+        except Exception as e:
+            print(f"[-] Error reading JSON output: {e}")
 
-        # Join all output
-        complete_output = ''.join(output_text)
-
-        # Parse output directly from command output
-        nikto_results = parse_nikto_output(complete_output)
-
+        # Fallback to parsing command output if JSON fails
+        nikto_results = parse_nikto_output(''.join(output_text))
+        
         # Add scan metadata
         return {
             "scan_status": "completed",
@@ -157,67 +173,88 @@ def parse_nikto_output(output_text):
         "ssl_info": {}
     }
     
+    if not output_text:
+        return results
+        
     current_section = None
     ssl_info = {}
     
-    lines = output_text.split('\n')
-    for i, line in enumerate(lines):
-        line = line.strip()
-        if not line:
-            continue
-            
-        # Extract basic information
-        if line.startswith('+ Target IP:'):
-            # Handle multiple IPs
-            ips = line.split(':', 1)[1].strip()
-            results['ip'] = ips.split(',')[0].strip()  # Use first IP
-        elif line.startswith('+ Target Hostname:'):
-            results['hostname'] = line.split(':', 1)[1].strip()
-        elif line.startswith('+ Target Port:'):
-            results['port'] = line.split(':', 1)[1].strip()
-        elif line.startswith('+ Server:'):
-            results['banner'] = line.split(':', 1)[1].strip()
-        # SSL Information
-        elif line.startswith('+ SSL Info:'):
-            current_section = 'ssl'
-            # Look ahead for SSL details
-            for ssl_line in lines[i+1:i+4]:
-                ssl_line = ssl_line.strip()
-                if ssl_line.startswith(('Subject:', 'Ciphers:', 'Issuer:')):
-                    key, value = ssl_line.split(':', 1)
-                    ssl_info[key.strip()] = value.strip()
-            results['ssl_info'] = ssl_info
-            current_section = None
-        # Vulnerabilities
-        elif line.startswith('+') and not any(x in line for x in [
-            'Start Time:', 'End Time:', 'SSL Info:', '0 error(s)', 'host(s) tested',
-            'Getting links', 'Scan completed', 'Target IP:', 'Target Hostname:',
-            'Target Port:', 'Server:'
-        ]):
-            msg = line.strip('+ ')
-            
-            # Skip summary lines
-            if any(x in msg for x in ['Scan terminated:', 'requests made in']):
+    try:
+        # First try to parse as JSON
+        try:
+            json_data = json.loads(output_text)
+            if isinstance(json_data, dict):
+                return json_data
+        except json.JSONDecodeError:
+            pass  # Not JSON, continue with text parsing
+        
+        lines = output_text.split('\n')
+        for i, line in enumerate(lines):
+            line = line.strip()
+            if not line:
                 continue
-            
-            # Determine vulnerability category
-            category = categorize_vulnerability(msg)
-            
-            # Extract references
-            references = []
-            if 'See:' in msg:
-                parts = msg.split('See:')
-                msg = parts[0].strip()
-                references.append(parts[1].strip())
-            
-            results['vulnerabilities'].append({
-                'id': category,  # Use category directly as ID
-                'method': 'GET',
-                'msg': msg,
-                'references': references[0] if references else ""
-            })
-
-    return results
+                
+            # Extract basic information
+            if '+ Target IP:' in line:
+                results['ip'] = line.split(':', 1)[1].strip().split(',')[0].strip()
+            elif '+ Target Hostname:' in line:
+                results['hostname'] = line.split(':', 1)[1].strip()
+            elif '+ Target Port:' in line:
+                results['port'] = line.split(':', 1)[1].strip()
+            elif '+ Server Banner:' in line or '+ Server:' in line:
+                results['banner'] = line.split(':', 1)[1].strip()
+            # SSL Information
+            elif '+ SSL Info:' in line or 'SSL Certificate:' in line:
+                current_section = 'ssl'
+                continue
+                
+            if current_section == 'ssl':
+                if line.startswith(('Subject:', 'Ciphers:', 'Issuer:')):
+                    key, value = line.split(':', 1)
+                    ssl_info[key.strip()] = value.strip()
+                else:
+                    current_section = None
+                    
+            # Vulnerabilities - look for lines starting with + that aren't headers
+            elif line.startswith('+') and not any(x in line for x in [
+                'Start Time:', 'End Time:', 'SSL Info:', '0 error(s)', 'host(s) tested',
+                'Getting links', 'Scan completed', 'Target IP:', 'Target Hostname:',
+                'Target Port:', 'Server:', 'Scan Settings:'
+            ]):
+                msg = line.strip('+ ')
+                
+                # Skip summary lines
+                if any(x in msg.lower() for x in [
+                    'scan terminated:', 'requests made in', 'items checked:',
+                    'host summary'
+                ]):
+                    continue
+                
+                # Extract references
+                references = ""
+                if 'See:' in msg:
+                    msg_parts = msg.split('See:')
+                    msg = msg_parts[0].strip()
+                    references = msg_parts[1].strip()
+                
+                # Determine vulnerability category
+                category = categorize_vulnerability(msg)
+                
+                vuln = {
+                    'id': category,
+                    'method': 'GET',
+                    'msg': msg,
+                    'references': references
+                }
+                
+                results['vulnerabilities'].append(vuln)
+        
+        results['ssl_info'] = ssl_info
+        return results
+        
+    except Exception as e:
+        print(f"[-] Error parsing Nikto output: {e}")
+        return results
 
 def extract_references(msg):
     """Extract references from vulnerability message."""
@@ -241,53 +278,145 @@ def extract_references(msg):
     references.extend(urls)
     return ', '.join(list(dict.fromkeys(references)))  # Remove duplicates
 
-def run_owasp_zap(target_url, output_file, zap_config=None):
+def run_owasp_zap(target_url, output_file, config=None):
     try:
-        print("[*] Connecting to OWASP ZAP...")
+        print("[*] Connecting to ZAP GUI...")
         
-        # Initialize ZAP client with the new API key
-        zap = ZAPv2(apikey=ZAP_API_KEY, 
-                   proxies={'http': f'http://{ZAP_ADDRESS}:{ZAP_PORT}', 
-                           'https': f'http://{ZAP_ADDRESS}:{ZAP_PORT}'})
+        # Initialize ZAP connection with retries
+        max_retries = 3
+        retry_delay = 5
         
-        try:
-            version = zap.core.version
-            print(f"[+] Connected to ZAP {version}")
-        except Exception as e:
-            print(f"[-] Failed to connect to ZAP: {e}")
-            print("[-] Please ensure ZAP is running on {ZAP_ADDRESS}:{ZAP_PORT}")
-            return {"error": "ZAP connection failed"}
+        for attempt in range(max_retries):
+            try:
+                zap = ZAPv2(apikey=ZAP_API_KEY, 
+                          proxies={'http': f'http://{ZAP_ADDRESS}:{ZAP_PORT}', 
+                                  'https': f'http://{ZAP_ADDRESS}:{ZAP_PORT}'})
+                # Test connection
+                version = zap.core.version
+                print(f"[+] Connected to ZAP GUI (version {version})")
+                break
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    raise Exception(f"Failed to connect to ZAP GUI after {max_retries} attempts: {e}")
+                print(f"[-] Connection attempt {attempt + 1} failed, retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
 
-        # Access target
-        print(f'[*] Accessing target {target_url}')
-        try:
-            zap.urlopen(target_url)
-            time.sleep(2)
-        except Exception as e:
-            print(f"[-] Failed to access target: {e}")
-            return {"error": f"Could not access {target_url}"}
+        # Configure scan based on duration
+        if config and 'duration' in config:
+            scan_time = {
+                'quick': 1,
+                'standard': 5,
+                'deep': 10
+            }.get(config['duration'], 5)  # Default to standard
+        else:
+            scan_time = 5  # Default scan time in minutes
 
-        # Spider scan
-        print('[*] Starting spider scan...')
+        # Configure scan policies based on selected tests
+        policy_name = None
+        if config and 'tests' in config:
+            try:
+                # Generate a unique policy name using timestamp
+                timestamp = int(time.time())
+                policy_name = f'policy_{timestamp}'
+                
+                # First try to remove any existing policy with the same name
+                try:
+                    zap.ascan.remove_scan_policy(policy_name)
+                except Exception:
+                    pass  # Policy doesn't exist, which is fine
+
+                # Create a new policy
+                print(f"[*] Creating scan policy: {policy_name}")
+                zap.ascan.add_scan_policy(policy_name)
+
+                # Get all scan IDs first
+                all_scanners = zap.ascan.scanners()
+                scanner_ids = {
+                    'xss': [],
+                    'sqli': [],
+                    'auth_issues': [],
+                    'headers': []
+                }
+
+                # Categorize scanners
+                for scanner in all_scanners:
+                    scanner_id = scanner['id']
+                    name = scanner['name'].lower()
+                    if 'xss' in name or 'cross' in name:
+                        scanner_ids['xss'].append(scanner_id)
+                    elif 'sql' in name or 'injection' in name:
+                        scanner_ids['sqli'].append(scanner_id)
+                    elif 'auth' in name or 'login' in name:
+                        scanner_ids['auth_issues'].append(scanner_id)
+                    elif 'header' in name:
+                        scanner_ids['headers'].append(scanner_id)
+
+                # Disable all scanners first
+                for scanner in all_scanners:
+                    zap.ascan.disable_scanners(scanner['id'], policy_name)
+
+                # Enable selected scanners
+                for test_type, enabled in config['tests'].items():
+                    if enabled and test_type in scanner_ids:
+                        for scanner_id in scanner_ids[test_type]:
+                            try:
+                                print(f"[*] Enabling scanner {scanner_id} for {test_type}")
+                                zap.ascan.enable_scanners(scanner_id, policy_name)
+                            except Exception as e:
+                                print(f"[-] Error enabling scanner {scanner_id}: {e}")
+
+            except Exception as e:
+                print(f"[-] Error configuring scan policy: {e}")
+                policy_name = None
+
+        # Access the target through ZAP proxy
+        print(f"[*] Accessing target through ZAP: {target_url}")
+        zap.urlopen(target_url)
+        time.sleep(2)  # Wait for the request to complete
+
+        # Spider the target
+        print("[*] Starting spider...")
         scan_id = zap.spider.scan(target_url)
-        
+        time.sleep(2)
+
+        # Wait for spider to complete
         while int(zap.spider.status(scan_id)) < 100:
-            print(f'Spider progress: {zap.spider.status(scan_id)}%')
+            print(f"[*] Spider progress: {zap.spider.status(scan_id)}%")
             time.sleep(2)
-        
-        print('[+] Spider scan completed')
-        
-        # Active scan
-        print('[*] Starting active scan...')
-        scan_id = zap.ascan.scan(target_url)
+
+        print("[*] Spider completed")
+
+        # Start the active scan
+        print("[*] Starting active scan...")
+        if policy_name:
+            print(f"[*] Using custom policy: {policy_name}")
+            scan_id = zap.ascan.scan(target_url, scanpolicyname=policy_name)
+        else:
+            print("[*] Using default policy")
+            scan_id = zap.ascan.scan(target_url)
+
+        # Wait for the scan to complete
+        start_time = time.time()
+        timeout = scan_time * 60  # Convert minutes to seconds
         
         while int(zap.ascan.status(scan_id)) < 100:
-            print(f'Scan progress: {zap.ascan.status(scan_id)}%')
+            if time.time() - start_time > timeout:
+                print("[-] Scan timeout reached, gathering available results...")
+                break
+            print(f"[*] Scan progress: {zap.ascan.status(scan_id)}%")
             time.sleep(5)
-        
-        print('[+] Active scan completed')
 
-        # Get and format results with metadata
+        print("[*] Active scan completed")
+
+        # Clean up the custom policy
+        if policy_name:
+            try:
+                zap.ascan.remove_scan_policy(policy_name)
+                print(f"[*] Removed custom policy: {policy_name}")
+            except Exception as e:
+                print(f"[-] Error removing policy: {e}")
+
+        # Get and format results
         alerts = zap.core.alerts()
         formatted_alerts = []
         
@@ -307,7 +436,7 @@ def run_owasp_zap(target_url, output_file, zap_config=None):
             }
             formatted_alerts.append(formatted_alert)
 
-        # Add metadata and site information
+        # Save results to file
         results = {
             'scan_status': 'completed',
             'metadata': {
@@ -318,7 +447,7 @@ def run_owasp_zap(target_url, output_file, zap_config=None):
                     'name': target_url,
                     'host': target_url.split('://')[1].split('/')[0],
                     'port': '443' if target_url.startswith('https') else '80',
-                    'ssl': 'true' if target_url.startswith('https') else 'false'
+                    'ssl': target_url.startswith('https')
                 }
             },
             'alerts': formatted_alerts,
@@ -326,59 +455,55 @@ def run_owasp_zap(target_url, output_file, zap_config=None):
                 'total_alerts': len(formatted_alerts),
                 'high_risks': len([a for a in formatted_alerts if a['risk'] == 'High']),
                 'medium_risks': len([a for a in formatted_alerts if a['risk'] == 'Medium']),
-                'low_risks': len([a for a in formatted_alerts if a['risk'] == 'Low'])
+                'low_risks': len([a for a in formatted_alerts if a['risk'] == 'Low']),
+                'info_risks': len([a for a in formatted_alerts if a['risk'] == 'Informational'])
             }
         }
         
+        # Save to file
+        os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, 'w') as f:
             json.dump(results, f, indent=4)
         
-        # Return results in a properly structured format
-        return {
-            "metadata": {
-                "programName": "OWASP ZAP",
-                "version": zap.core.version,
-                "generated": time.strftime('%Y-%m-%d %H:%M:%S'),
-                "site": {
-                    "name": target_url,
-                    "host": target_url.split('://')[1].split('/')[0],
-                    "port": '443' if target_url.startswith('https') else '80',
-                    "ssl": 'true' if target_url.startswith('https') else 'false'
-                }
-            },
-            "alerts": alerts,
-            "summary": {
-                "total_alerts": 0,
-                "high_risks": len([a for a in alerts if a['risk'] == 'High']),
-                "medium_risks": len([a for a in alerts if a['risk'] == 'Medium']),
-                "low_risks": len([a for a in alerts if a['risk'] == 'Low'])
-            }
-        }
+        return results
 
     except Exception as e:
         error_msg = f"Error during OWASP ZAP scan: {str(e)}"
         print(f"[-] {error_msg}")
-        return {
-            "metadata": {
-                "programName": "OWASP ZAP",
-                "version": "Error",
-                "generated": time.strftime('%Y-%m-%d %H:%M:%S'),
-                "site": {
-                    "name": target_url,
-                    "host": "Error",
-                    "port": "Error",
-                    "ssl": "Error"
+        
+        # Save error results
+        error_results = {
+            'scan_status': 'error',
+            'metadata': {
+                'programName': 'OWASP ZAP',
+                'version': 'Error',
+                'generated': time.strftime('%Y-%m-%d %H:%M:%S'),
+                'site': {
+                    'name': target_url,
+                    'host': 'Error',
+                    'port': 'Error',
+                    'ssl': 'Error'
                 }
             },
-            "alerts": [],
-            "summary": {
-                "total_alerts": 0,
-                "high_risks": 0,
-                "medium_risks": 0,
-                "low_risks": 0
+            'alerts': [],
+            'summary': {
+                'total_alerts': 0,
+                'high_risks': 0,
+                'medium_risks': 0,
+                'low_risks': 0,
+                'info_risks': 0
             },
-            "error": error_msg
+            'error': error_msg
         }
+        
+        try:
+            os.makedirs(os.path.dirname(output_file), exist_ok=True)
+            with open(output_file, 'w') as f:
+                json.dump(error_results, f, indent=4)
+        except Exception as save_error:
+            print(f"[-] Error saving results: {save_error}")
+        
+        return error_results
 
 from db_operations import DatabaseHandler
 

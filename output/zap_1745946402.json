@@ -1,0 +1,21 @@
+{
+    "scan_status": "completed",
+    "metadata": {
+        "programName": "OWASP ZAP",
+        "version": "2.16.1",
+        "generated": "2025-04-29 22:36:43",
+        "site": {
+            "name": "https://demo.owasp-juice.shop/",
+            "host": "demo.owasp-juice.shop",
+            "port": "443",
+            "ssl": "true"
+        }
+    },
+    "alerts": [],
+    "summary": {
+        "total_alerts": 0,
+        "high_risks": 0,
+        "medium_risks": 0,
+        "low_risks": 0
+    }
+}

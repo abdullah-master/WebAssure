@@ -4,6 +4,7 @@ import os
 import json
 from datetime import datetime
 import time
+import traceback
 
 class DatabaseHandler:
     def __init__(self, mongo_uri="mongodb://localhost:27017/"):
@@ -38,25 +39,31 @@ class DatabaseHandler:
 
     def save_scan_results(self, target_url, output_dir, nikto_results, zap_results):
         try:
-            # Calculate metrics
+            # Validate inputs
+            if not isinstance(nikto_results, dict):
+                nikto_results = {"scan_status": "error", "error": "Invalid Nikto results format"}
+            if not isinstance(zap_results, dict):
+                zap_results = {"scan_status": "error", "error": "Invalid ZAP results format"}
+
+            # Calculate metrics with safe dict.get() access
             zap_metrics = {
-                'high_risks': len([a for a in zap_results.get('alerts', []) if a.get('risk') == 'High']),
-                'medium_risks': len([a for a in zap_results.get('alerts', []) if a.get('risk') == 'Medium']),
-                'low_risks': len([a for a in zap_results.get('alerts', []) if a.get('risk') == 'Low']),
-                'info_risks': len([a for a in zap_results.get('alerts', []) if a.get('risk') == 'Informational'])
+                'high_risks': len([a for a in zap_results.get('alerts', []) if isinstance(a, dict) and a.get('risk') == 'High']),
+                'medium_risks': len([a for a in zap_results.get('alerts', []) if isinstance(a, dict) and a.get('risk') == 'Medium']),
+                'low_risks': len([a for a in zap_results.get('alerts', []) if isinstance(a, dict) and a.get('risk') == 'Low']),
+                'info_risks': len([a for a in zap_results.get('alerts', []) if isinstance(a, dict) and a.get('risk') == 'Informational'])
             }
 
             nikto_metrics = {
                 'total_vulnerabilities': len(nikto_results.get('vulnerabilities', [])),
                 'high_risks': len([v for v in nikto_results.get('vulnerabilities', []) 
-                                 if v['id'].startswith(('INJECT', 'SQL', 'XSS'))]),
+                                 if isinstance(v, dict) and v.get('id', '').startswith(('INJECT', 'SQL', 'XSS'))]),
                 'medium_risks': len([v for v in nikto_results.get('vulnerabilities', []) 
-                                   if v['id'].startswith(('CONFIG', 'SSL', 'AUTH'))]),
+                                   if isinstance(v, dict) and v.get('id', '').startswith(('CONFIG', 'SSL', 'AUTH'))]),
                 'low_risks': len([v for v in nikto_results.get('vulnerabilities', []) 
-                                if v['id'].startswith(('INFO', 'HEADER'))])
+                                if isinstance(v, dict) and v.get('id', '').startswith(('INFO', 'HEADER'))])
             }
 
-            # Prepare document with actual scan results
+            # Prepare document
             document = {
                 'timestamp': datetime.now(),
                 'target_url': target_url,
@@ -74,18 +81,29 @@ class DatabaseHandler:
                 'scan_files': {
                     'output_dir': os.path.abspath(output_dir)
                 },
-                # Store actual scan results
                 'nikto_results': nikto_results,
                 'zap_results': zap_results
             }
 
-            # Insert into MongoDB
-            result = self.collection.insert_one(document)
-            if not result.inserted_id:
-                raise Exception("Failed to get inserted document ID")
+            # Ensure MongoDB connection is active
+            if not self.client:
+                print("[-] MongoDB connection not available")
+                return None
 
-            print(f"[+] Saved scan results to MongoDB with ID: {result.inserted_id}")
-            return str(result.inserted_id)  # Convert ObjectId to string
+            # Insert into MongoDB with retry
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    result = self.collection.insert_one(document)
+                    if result.inserted_id:
+                        print(f"[+] Saved scan results to MongoDB with ID: {result.inserted_id}")
+                        return str(result.inserted_id)
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        print(f"[-] Failed to save to MongoDB after {max_retries} attempts: {e}")
+                        return None
+                    print(f"[-] Retry {attempt + 1} after MongoDB save error: {e}")
+                    time.sleep(1)  # Wait before retry
 
         except Exception as e:
             print(f"[-] Error saving to MongoDB: {e}")
@@ -112,17 +130,34 @@ class DatabaseHandler:
             # Find the report
             report = self.collection.find_one({"_id": ObjectId(report_id)})
             
-            if report:
-                # Process scan results
-                if 'nikto_results' in report:
-                    self._process_nikto_results(report['nikto_results'])
-                if 'zap_results' in report:
-                    self._process_zap_results(report['zap_results'])
-                    
+            if not report:
+                print(f"[-] Report not found with ID: {report_id}")
+                return None
+                
+            # Convert MongoDB types to Python native types
+            if 'timestamp' in report:
+                report['timestamp'] = report['timestamp'].isoformat()
+                
+            # Ensure required fields exist
+            if 'metrics' not in report:
+                report['metrics'] = {}
+            if 'zap_results' not in report:
+                report['zap_results'] = {'alerts': []}
+            if 'nikto_results' not in report:
+                report['nikto_results'] = {'vulnerabilities': []}
+                
+            # Process scan results
+            if 'nikto_results' in report:
+                self._process_nikto_results(report['nikto_results'])
+            if 'zap_results' in report:
+                self._process_zap_results(report['zap_results'])
+                
+            print(f"[+] Successfully retrieved report with ID: {report_id}")
             return report
             
         except Exception as e:
             print(f"[-] Error retrieving report: {e}")
+            traceback.print_exc()
             return None
 
     def _process_nikto_results(self, results):

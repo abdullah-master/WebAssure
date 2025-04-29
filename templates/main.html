@@ -93,214 +93,6 @@
             50% { opacity: 0; }
         }
         
-        /* WiFi Loader Animation */
-        #wifi-loader {
-            display: none;
-            --background: #00ffcc;
-            --front-color: #0d1117;
-            --back-color: rgba(0, 255, 204, 0.2);
-            --text-color: #e5e5e5;
-            width: 64px;
-            height: 64px;
-            border-radius: 50px;
-            position: fixed; 
-            top: 50%; 
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.8); 
-            z-index: 9999; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        #wifi-loader svg {
-            position: absolute;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        #wifi-loader svg circle {
-            position: absolute;
-            fill: none;
-            stroke-width: 6px;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            transform: rotate(-100deg);
-            transform-origin: center;
-        }
-        
-        #wifi-loader svg circle.back {
-            stroke: var(--back-color);
-        }
-        
-        #wifi-loader svg circle.front {
-            stroke: var(--front-color);
-        }
-        
-        #wifi-loader svg.circle-outer {
-            height: 86px;
-            width: 86px;
-        }
-        
-        #wifi-loader svg.circle-outer circle {
-            stroke-dasharray: 62.75 188.25;
-        }
-        
-        #wifi-loader svg.circle-outer circle.back {
-            animation: circle-outer135 1.8s ease infinite 0.3s;
-        }
-        
-        #wifi-loader svg.circle-outer circle.front {
-            animation: circle-outer135 1.8s ease infinite 0.15s;
-        }
-        
-        #wifi-loader svg.circle-middle {
-            height: 60px;
-            width: 60px;
-        }
-        
-        #wifi-loader svg.circle-middle circle {
-            stroke-dasharray: 42.5 127.5;
-        }
-        
-        #wifi-loader svg.circle-middle circle.back {
-            animation: circle-middle6123 1.8s ease infinite 0.25s;
-        }
-        
-        #wifi-loader svg.circle-middle circle.front {
-            animation: circle-middle6123 1.8s ease infinite 0.1s;
-        }
-        
-        #wifi-loader svg.circle-inner {
-            height: 34px;
-            width: 34px;
-        }
-        
-        #wifi-loader svg.circle-inner circle {
-            stroke-dasharray: 22 66;
-        }
-        
-        #wifi-loader svg.circle-inner circle.back {
-            animation: circle-inner162 1.8s ease infinite 0.2s;
-        }
-        
-        #wifi-loader svg.circle-inner circle.front {
-            animation: circle-inner162 1.8s ease infinite 0.05s;
-        }
-        
-        #wifi-loader .text {
-            position: absolute;
-            bottom: -40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-transform: lowercase;
-            font-weight: 500;
-            font-size: 14px;
-            letter-spacing: 0.2px;
-        }
-        
-        #wifi-loader .text::before,
-        #wifi-loader .text::after {
-            content: attr(data-text);
-        }
-        
-        #wifi-loader .text::before {
-            color: var(--text-color);
-        }
-        
-        #wifi-loader .text::after {
-            color: var(--front-color);
-            animation: text-animation76 3.6s ease infinite;
-            position: absolute;
-            left: 0;
-        }
-        
-        @keyframes circle-outer135 {
-            0% {
-                stroke-dashoffset: 25;
-            }
-        
-            25% {
-                stroke-dashoffset: 0;
-            }
-        
-            65% {
-                stroke-dashoffset: 301;
-            }
-        
-            80% {
-                stroke-dashoffset: 276;
-            }
-        
-            100% {
-                stroke-dashoffset: 276;
-            }
-        }
-        
-        @keyframes circle-middle6123 {
-            0% {
-                stroke-dashoffset: 17;
-            }
-        
-            25% {
-                stroke-dashoffset: 0;
-            }
-        
-            65% {
-                stroke-dashoffset: 204;
-            }
-        
-            80% {
-                stroke-dashoffset: 187;
-            }
-        
-            100% {
-                stroke-dashoffset: 187;
-            }
-        }
-        
-        @keyframes circle-inner162 {
-            0% {
-                stroke-dashoffset: 9;
-            }
-        
-            25% {
-                stroke-dashoffset: 0;
-            }
-        
-            65% {
-                stroke-dashoffset: 106;
-            }
-        
-            80% {
-                stroke-dashoffset: 97;
-            }
-        
-            100% {
-                stroke-dashoffset: 97;
-            }
-        }
-        
-        @keyframes text-animation76 {
-            0% {
-                clip-path: inset(0 100% 0 0);
-            }
-        
-            50% {
-                clip-path: inset(0);
-            }
-        
-            100% {
-                clip-path: inset(0 0 0 100%);
-            }
-        }
-        
-       
-        
-        /* Removed WiFi Loader Animation styles */
-        
         .scan-form {
             max-width: 600px;
             margin: 1.5rem auto;
@@ -366,8 +158,6 @@
         <div class="absolute inset-0 bg-gradient-to-b from-transparent to-[#0d1117]"></div>
     </div>
 
-    <!-- Removed WiFi Loader div -->
-    
     <div class="relative z-10">
         <!-- Navigation Bar -->
         <nav class="glass-panel border-b border-[#00ffcc]/10">
@@ -424,144 +214,120 @@
                 <h2 class="text-2xl font-orbitron font-bold text-white mb-6 text-center">SCAN CONFIGURATION</h2>
                 
                 <form action="{{ url_for('scan') }}" method="post" id="scanForm" onsubmit="return startScan(event)">
-                    <div class="form-group">
-                        <label for="target_url" class="form-label">TARGET URL</label>
-                        <input type="text" id="target_url" name="target_url" placeholder="https://example.com" required
-                               class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg text-white focus:border-[#00ffcc] focus:ring-2 focus:ring-[#00ffcc]/20">
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <div class="form-group">
-                            <label for="scan_type" class="form-label">SCAN TYPE</label>
-                            <select id="scan_type" name="scan_type" class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg text-white focus:border-[#00ffcc] focus:ring-2 focus:ring-[#00ffcc]/20">
-                                <option value="full">Full Security Scan</option>
-                                <option value="quick">Quick Vulnerability Check</option>
-                                <option value="custom">Custom Configuration</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="scan_depth" class="form-label">SCAN DEPTH</label>
-                            <select id="scan_depth" name="scan_depth" class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg text-white focus:border-[#00ffcc] focus:ring-2 focus:ring-[#00ffcc]/20">
-                                <option value="basic">Basic (Faster)</option>
-                                <option value="standard" selected>Standard</option>
-                                <option value="deep">Deep (More Thorough)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Custom Configuration Options (Hidden by default) -->
-                    <div id="custom-options" class="hidden space-y-6 mb-6">
-                        <div class="hologram-card bg-[#0d1117]/80 p-4 rounded-lg border border-[#00ffcc]/30">
-                            <h3 class="text-lg font-orbitron font-semibold text-[#00ffcc] mb-4">Nikto Configuration</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="form-group">
-                                    <label for="nikto_tuning" class="form-label">Tuning Options</label>
-                                    <select name="nikto_tuning" id="nikto_tuning" class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg text-white focus:border-[#00ffcc] focus:ring-2 focus:ring-[#00ffcc]/20">
-                                        <option value="">None</option>
-                                        <option value="0">File Upload</option>
-                                        <option value="1">Interesting Files</option>
-                                        <option value="2">Dangerous Files</option>
-                                        <option value="3">Remote File Retrieval</option>
-                                        <option value="4">Denial of Service</option>
-                                        <option value="5">Remote Shell</option>
-                                        <option value="6">SQL Injection</option>
-                                        <option value="7">Authentication Bypass</option>
-                                        <option value="8">Software Identification</option>
-                                        <option value="9">Miscellaneous</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="nikto_timeout" class="form-label">Timeout (seconds)</label>
-                                    <input type="number" id="nikto_timeout" name="nikto_timeout" min="30" max="300" value="60" 
-                                           class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg text-white focus:border-[#00ffcc] focus:ring-2 focus:ring-[#00ffcc]/20">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="hologram-card bg-[#0d1117]/80 p-4 rounded-lg border border-[#00ffcc]/30">
-                            <h3 class="text-lg font-orbitron font-semibold text-[#00ffcc] mb-4">OWASP ZAP Configuration</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="form-group">
-                                    <label for="zap_alert" class="form-label">Alert Threshold</label>
-                                    <select id="zap_alert" name="zap_alert" class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg text-white focus:border-[#00ffcc] focus:ring-2 focus:ring-[#00ffcc]/20">
-                                        <option value="">Default</option>
-                                        <option value="HIGH">High</option>
-                                        <option value="MEDIUM">Medium</option>
-                                        <option value="LOW">Low</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="zap_depth" class="form-label">Spider Max Depth</label>
-                                    <select id="zap_depth" name="zap_depth" class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg text-white focus:border-[#00ffcc] focus:ring-2 focus:ring-[#00ffcc]/20">
-                                        <option value="">Default</option>
-                                        {% for i in range(1, 11) %}
-                                        <option value="{{ i }}">Depth {{ i }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="zap_duration" class="form-label">Spider Duration (mins)</label>
-                                    <select id="zap_duration" name="zap_duration" class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg text-white focus:border-[#00ffcc] focus:ring-2 focus:ring-[#00ffcc]/20">
-                                        <option value="">Default</option>
-                                        {% for i in range(1, 31, 5) %}
-                                        <option value="{{ i }}">{{ i }} minutes</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="zap_policy" class="form-label">Scan Policy</label>
-                                    <select id="zap_policy" name="zap_policy" class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg text-white focus:border-[#00ffcc] focus:ring-2 focus:ring-[#00ffcc]/20">
-                                        <option value="Default">Default Policy</option>
-                                        <option value="Light">Light (Fast)</option>
-                                        <option value="Medium">Medium</option>
-                                        <option value="Full">Full (Thorough)</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="hologram-card bg-[#0d1117]/80 p-4 rounded-lg border border-[#00ffcc]/30">
-                            <h3 class="text-lg font-orbitron font-semibold text-[#00ffcc] mb-4">Additional Options</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="form-group">
-                                    <label class="flex items-center space-x-3">
-                                        <input type="checkbox" id="crawl_robots" name="crawl_robots" class="w-4 h-4 text-[#00ffcc] bg-[#0d1117] border-[#00ffcc]/30 rounded focus:ring-[#00ffcc]">
-                                        <span class="text-white">Follow robots.txt</span>
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label class="flex items-center space-x-3">
-                                        <input type="checkbox" id="exclude_urls" name="exclude_urls" class="w-4 h-4 text-[#00ffcc] bg-[#0d1117] border-[#00ffcc]/30 rounded focus:ring-[#00ffcc]">
-                                        <span class="text-white">Exclude Common URLs</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
+                    <!-- Target URL Input -->
                     <div class="form-group mb-6">
-                        <label class="form-label">SCAN MODULES</label>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="flex items-center p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg">
-                                <input type="checkbox" id="zap_scan" name="zap_scan" checked class="mr-3 h-4 w-4 text-[#00ffcc] focus:ring-[#00ffcc]">
-                                <label for="zap_scan" class="text-white">OWASP ZAP Scan</label>
+                        <label for="target_url" class="form-label">TARGET URL</label>
+                        <input type="text" id="target_url" name="target_url" 
+                               placeholder="https://example.com" required
+                               class="w-full p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg">
+                    </div>
+
+                    <!-- Scan Duration Selection -->
+                    <div class="mb-6">
+                        <label class="form-label">SCAN DURATION</label>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <label class="flex items-center p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg cursor-pointer hover:bg-[#00ffcc]/5">
+                                <input type="radio" name="scan_duration" value="quick" class="form-radio text-[#00ffcc]">
+                                <span class="ml-2">
+                                    <span class="block text-white">Quick Scan</span>
+                                    <span class="text-sm text-[#e5e5e5]/60">5-10 minutes</span>
+                                </span>
+                            </label>
+                            <label class="flex items-center p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg cursor-pointer hover:bg-[#00ffcc]/5">
+                                <input type="radio" name="scan_duration" value="standard" class="form-radio text-[#00ffcc]" checked>
+                                <span class="ml-2">
+                                    <span class="block text-white">Standard Scan</span>
+                                    <span class="text-sm text-[#e5e5e5]/60">15-20 minutes</span>
+                                </span>
+                            </label>
+                            <label class="flex items-center p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg cursor-pointer hover:bg-[#00ffcc]/5">
+                                <input type="radio" name="scan_duration" value="deep" class="form-radio text-[#00ffcc]">
+                                <span class="ml-2">
+                                    <span class="block text-white">Deep Scan</span>
+                                    <span class="text-sm text-[#e5e5e5]/60">30+ minutes</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Scan Modules Selection -->
+                    <div class="mb-6">
+                        <label class="form-label">SCAN MODULES & TESTS</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- ZAP Module -->
+                            <div class="hologram-card bg-[#0d1117]/80 p-6 rounded-lg border border-[#00ffcc]/30">
+                                <div class="flex items-start">
+                                    <input type="checkbox" name="modules[]" value="zap" id="zap_module"
+                                           class="mt-1 form-checkbox text-[#00ffcc]" checked>
+                                    <div class="ml-3 flex-1">
+                                        <label for="zap_module" class="text-lg font-medium text-white">OWASP ZAP</label>
+                                        <p class="text-sm text-[#e5e5e5]/60 mb-3">Dynamic security testing</p>
+                                        
+                                        <!-- ZAP Tests -->
+                                        <div class="space-y-2">
+                                            <label class="flex items-center space-x-2">
+                                                <input type="checkbox" name="zap_tests[]" value="xss" checked
+                                                       class="form-checkbox text-[#00ffcc]">
+                                                <span class="text-sm text-white">Cross-Site Scripting (XSS)</span>
+                                            </label>
+                                            <label class="flex items-center space-x-2">
+                                                <input type="checkbox" name="zap_tests[]" value="sqli" checked
+                                                       class="form-checkbox text-[#00ffcc]">
+                                                <span class="text-sm text-white">SQL Injection</span>
+                                            </label>
+                                            <label class="flex items-center space-x-2">
+                                                <input type="checkbox" name="zap_tests[]" value="headers" checked
+                                                       class="form-checkbox text-[#00ffcc]">
+                                                <span class="text-sm text-white">Security Headers</span>
+                                            </label>
+                                            <label class="flex items-center space-x-2">
+                                                <input type="checkbox" name="zap_tests[]" value="auth_issues"
+                                                       class="form-checkbox text-[#00ffcc]">
+                                                <span class="text-sm text-white">Authentication Issues</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex items-center p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg">
-                                <input type="checkbox" id="nikto_scan" name="nikto_scan" checked class="mr-3 h-4 w-4 text-[#00ffcc] focus:ring-[#00ffcc]">
-                                <label for="nikto_scan" class="text-white">Nikto Web Scanner</label>
-                            </div>
-                            <div class="flex items-center p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg">
-                                <input type="checkbox" id="ssl_check" name="ssl_check" checked class="mr-3 h-4 w-4 text-[#00ffcc] focus:ring-[#00ffcc]">
-                                <label for="ssl_check" class="text-white">SSL/TLS Analysis</label>
-                            </div>
-                            <div class="flex items-center p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg">
-                                <input type="checkbox" id="headers_check" name="headers_check" checked class="mr-3 h-4 w-4 text-[#00ffcc] focus:ring-[#00ffcc]">
-                                <label for="headers_check" class="text-white">Security Headers Check</label>
+
+                            <!-- Nikto Module -->
+                            <div class="hologram-card bg-[#0d1117]/80 p-6 rounded-lg border border-[#00ffcc]/30">
+                                <div class="flex items-start">
+                                    <input type="checkbox" name="modules[]" value="nikto" id="nikto_module"
+                                           class="mt-1 form-checkbox text-[#00ffcc]" checked>
+                                    <div class="ml-3 flex-1">
+                                        <label for="nikto_module" class="text-lg font-medium text-white">Nikto Scanner</label>
+                                        <p class="text-sm text-[#e5e5e5]/60 mb-3">Web server security testing</p>
+                                        
+                                        <!-- Nikto Tests -->
+                                        <div class="space-y-2">
+                                            <label class="flex items-center space-x-2">
+                                                <input type="checkbox" name="nikto_tests[]" value="sqli" checked
+                                                       class="form-checkbox text-[#00ffcc]">
+                                                <span class="text-sm text-white">SQL Injection Tests</span>
+                                            </label>
+                                            <label class="flex items-center space-x-2">
+                                                <input type="checkbox" name="nikto_tests[]" value="headers" checked
+                                                       class="form-checkbox text-[#00ffcc]">
+                                                <span class="text-sm text-white">Security Headers</span>
+                                            </label>
+                                            <label class="flex items-center space-x-2">
+                                                <input type="checkbox" name="nikto_tests[]" value="ssl" checked
+                                                       class="form-checkbox text-[#00ffcc]">
+                                                <span class="text-sm text-white">SSL/TLS Issues</span>
+                                            </label>
+                                            <label class="flex items-center space-x-2">
+                                                <input type="checkbox" name="nikto_tests[]" value="auth"
+                                                       class="form-checkbox text-[#00ffcc]">
+                                                <span class="text-sm text-white">Authentication</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="flex justify-center">
                         <button type="submit" class="px-8 py-4 bg-[#00ffcc] text-[#0d1117] rounded-lg font-bold text-lg transform transition-all hover:scale-105 neon-glow">
                             INITIATE SCAN
@@ -585,7 +351,7 @@
                 <div class="w-full bg-[#0d1117] rounded-full h-2.5 mb-4">
                     <div class="bg-[#00ffcc] h-2.5 rounded-full" style="width: 45%"></div>
                 </div>
-                <p class="text-center text-[#e5e5e5]">Estimated time remaining: <span class="text-[#00ffcc]">2 minutes</span></p>
+                <p class="text-center text-[#e5e5e5]">Powered By WebAssure.</p>
             </div>
         </main>
         

@@ -1,0 +1,164 @@
+{
+    "scan_status": "completed",
+    "host": "https://demo.owasp-juice.shop/",
+    "ip": "81.169.145.156",
+    "port": "443",
+    "hostname": "demo.owasp-juice.shop",
+    "banner": "Heroku",
+    "ssl_info": {
+        "Ciphers": "TLS_AES_256_GCM_SHA384",
+        "Issuer": "/C=US/O=DigiCert Inc/OU=www.digicert.com/CN=RapidSSL TLS RSA CA G1"
+    },
+    "vulnerabilities": [
+        {
+            "id": "HEADER",
+            "method": "GET",
+            "msg": "/: Retrieved via header: 1.1 heroku-router.",
+            "references": ""
+        },
+        {
+            "id": "HEADER",
+            "method": "GET",
+            "msg": "/: Uncommon header(s) 'reporting-endpoints' found, with contents: heroku-nel=\"https://nel.heroku.com/reports?s=9tN%2BC5vXEhmveL6WdyB0Cjd90ifIRdxDrwqR5d%2F%2BOLI%3D&sid=812dcc77-0bd0-43b1-a5f1-b25750382959&ts=1745947467\".",
+            "references": ""
+        },
+        {
+            "id": "SSL",
+            "method": "GET",
+            "msg": "/: The site uses TLS and the Strict-Transport-Security HTTP header is not defined.",
+            "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security"
+        },
+        {
+            "id": "HEADER",
+            "method": "GET",
+            "msg": "/8wrv1nwu.se: Retrieved access-control-allow-origin header: *.",
+            "references": ""
+        },
+        {
+            "id": "HEADER",
+            "method": "GET",
+            "msg": "/8wrv1nwu.se:X-Frame-Options header is deprecated and was replaced with the Content-Security-Policy HTTP header with the frame-ancestors directive instead.",
+            "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options"
+        },
+        {
+            "id": "HEADER",
+            "method": "GET",
+            "msg": "/8wrv1nwu.se: Uncommon header(s) 'x-recruiting' found, with contents: /#/jobs.",
+            "references": ""
+        },
+        {
+            "id": "MISC",
+            "method": "GET",
+            "msg": ": Server banner changed from 'Heroku' to 'Apache/2.4.63 (Unix)'.",
+            "references": ""
+        },
+        {
+            "id": "MISC",
+            "method": "GET",
+            "msg": "No CGI Directories found (use '-C all' to force check all possible dirs)",
+            "references": ""
+        },
+        {
+            "id": "MISC",
+            "method": "GET",
+            "msg": "/robots.txt: Entry '/ftp/' is returned a non-forbidden or redirect HTTP code (200).",
+            "references": "https://portswigger.net/kb/issues/00600600_robots-txt-file"
+        },
+        {
+            "id": "MISC",
+            "method": "GET",
+            "msg": "/robots.txt: contains 1 entry which should be manually viewed.",
+            "references": "https://developer.mozilla.org/en-US/docs/Glossary/Robots.txt"
+        },
+        {
+            "id": "HEADER",
+            "method": "GET",
+            "msg": "/: The Content-Encoding header is set to \"deflate\" which may mean that the server is vulnerable to the BREACH attack.",
+            "references": "http://breachattack.com/"
+        },
+        {
+            "id": "HEADER",
+            "method": "GET",
+            "msg": "/: Suggested security header missing: content-security-policy.",
+            "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP"
+        },
+        {
+            "id": "HEADER",
+            "method": "GET",
+            "msg": "/: Suggested security header missing: permissions-policy.",
+            "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy"
+        },
+        {
+            "id": "HEADER",
+            "method": "GET",
+            "msg": "/: Suggested security header missing: referrer-policy.",
+            "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy"
+        },
+        {
+            "id": "HEADER",
+            "method": "GET",
+            "msg": "/: Suggested security header missing: strict-transport-security.",
+            "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security"
+        },
+        {
+            "id": "MISC",
+            "method": "GET",
+            "msg": "/demo.owasp-juice.alz: Potentially interesting backup/cert file found. .",
+            "references": "https://cwe.mitre.org/data/definitions/530.html"
+        },
+        {
+            "id": "MISC",
+            "method": "GET",
+            "msg": "/demo.owasp-juice.tgz: Potentially interesting backup/cert file found. .",
+            "references": "https://cwe.mitre.org/data/definitions/530.html"
+        },
+        {
+            "id": "MISC",
+            "method": "GET",
+            "msg": "/archive.tgz: Potentially interesting backup/cert file found. .",
+            "references": "https://cwe.mitre.org/data/definitions/530.html"
+        },
+        {
+            "id": "MISC",
+            "method": "GET",
+            "msg": "/owasp-juice.tar: Potentially interesting backup/cert file found. .",
+            "references": "https://cwe.mitre.org/data/definitions/530.html"
+        },
+        {
+            "id": "MISC",
+            "method": "GET",
+            "msg": "/shop.tar.bz2: Potentially interesting backup/cert file found. .",
+            "references": "https://cwe.mitre.org/data/definitions/530.html"
+        },
+        {
+            "id": "SQL",
+            "method": "GET",
+            "msg": "/database.jks: Potentially interesting backup/cert file found. .",
+            "references": "https://cwe.mitre.org/data/definitions/530.html"
+        },
+        {
+            "id": "MISC",
+            "method": "GET",
+            "msg": "/shop.tgz: Potentially interesting backup/cert file found. .",
+            "references": "https://cwe.mitre.org/data/definitions/530.html"
+        },
+        {
+            "id": "MISC",
+            "method": "GET",
+            "msg": "/demoowasp-juiceshop.tgz: Potentially interesting backup/cert file found. .",
+            "references": "https://cwe.mitre.org/data/definitions/530.html"
+        },
+        {
+            "id": "MISC",
+            "method": "GET",
+            "msg": "/demo.owasp-juice.cer: Potentially interesting backup/cert file found. .",
+            "references": "https://cwe.mitre.org/data/definitions/530.html"
+        },
+        {
+            "id": "MISC",
+            "method": "GET",
+            "msg": "/archive.tar: Potentially interesting backup/cert file found. .",
+            "references": "https://cwe.mitre.org/data/definitions/530.html"
+        }
+    ]
+}

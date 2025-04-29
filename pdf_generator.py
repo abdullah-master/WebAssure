@@ -1,40 +1,22 @@
 from fpdf import FPDF
 import json
+import os
+import time
 from datetime import datetime
 import traceback
-import os
 import re
+from bson.objectid import ObjectId
 
 def sanitize_text(text):
     """Sanitize and encode text for PDF output"""
+    if text is None:
+        return ''
     if not isinstance(text, str):
         text = str(text)
-    
-    # Replace problematic characters
-    replacements = {
-        '\u2014': '-',  # em dash
-        '\u2013': '-',  # en dash
-        '\u2018': "'",  # single quote
-        '\u2019': "'",  # single quote
-        '\u201c': '"',  # double quote
-        '\u201d': '"',  # double quote
-        '\u2026': '...', # ellipsis
-        '\u2022': '*',  # bullet
-        '\u00a0': ' ',  # non-breaking space
-        '\u00ad': '-',  # soft hyphen
-        '\xa0': ' ',    # another non-breaking space
-        '\r': ' ',      # carriage return
-        '\n': ' ',      # newline
-        '\t': ' '       # tab
-    }
-    
-    for char, replacement in replacements.items():
-        text = text.replace(char, replacement)
-    
-    # Remove any remaining non-Latin1 characters
-    text = re.sub(r'[^\x00-\xff]', '?', text)
-    
-    return text.strip()
+    # Remove non-printable characters
+    text = ''.join(char for char in text if char.isprintable() or char in ['\n', '\r', '\t'])
+    # Convert to UTF-8
+    return text.encode('latin-1', errors='replace').decode('latin-1')
 
 class ReportPDF(FPDF):
     def __init__(self):
@@ -70,44 +52,153 @@ class ReportPDF(FPDF):
         txt = sanitize_text(txt)
         super().multi_cell(w, h, txt, border, align, fill)
 
+def calculate_metrics(scan_results):
+    """Calculate metrics from scan results"""
+    metrics = {'zap': {}, 'nikto': {}}
+    
+    # ZAP metrics
+    if 'zap_results' in scan_results:
+        alerts = scan_results['zap_results'].get('alerts', [])
+        metrics['zap'] = {
+            'high_risks': sum(1 for a in alerts if isinstance(a, dict) and a.get('risk') == 'High'),
+            'medium_risks': sum(1 for a in alerts if isinstance(a, dict) and a.get('risk') == 'Medium'),
+            'low_risks': sum(1 for a in alerts if isinstance(a, dict) and a.get('risk') == 'Low'),
+            'info_risks': sum(1 for a in alerts if isinstance(a, dict) and a.get('risk') == 'Informational')
+        }
+    
+    # Nikto metrics
+    if 'nikto_results' in scan_results:
+        vulns = scan_results['nikto_results'].get('vulnerabilities', [])
+        metrics['nikto'] = {
+            'total_vulnerabilities': len(vulns),
+            'high_risks': sum(1 for v in vulns if isinstance(v, dict) and 
+                            any(x in str(v.get('msg', '')).lower() for x in ['sql', 'xss', 'injection', 'remote'])),
+            'medium_risks': sum(1 for v in vulns if isinstance(v, dict) and 
+                              any(x in str(v.get('msg', '')).lower() for x in ['ssl', 'tls', 'config', 'auth'])),
+            'low_risks': sum(1 for v in vulns if isinstance(v, dict) and 
+                           not any(x in str(v.get('msg', '')).lower() 
+                                 for x in ['sql', 'xss', 'injection', 'remote', 'ssl', 'tls', 'config', 'auth']))
+        }
+    
+    return metrics
+
 def create_pdf_report(scan_results, pdf_type='complete'):
     try:
+        print("Creating PDF report with type:", pdf_type)
+        print("Scan results type:", type(scan_results))
+        
+        if not isinstance(scan_results, dict):
+            print(f"Error: Invalid scan_results type: {type(scan_results)}")
+            return None
+
         pdf = ReportPDF()
         pdf.add_page()
         
-        # Always show basic information
-        pdf.set_font('Arial', 'B', 14)
-        pdf.cell(0, 10, "Scan Information", 0, 1)
-        pdf.set_font('Arial', '', 11)
-        pdf.cell(0, 8, f"Target URL: {scan_results.get('target_url', 'N/A')}", 0, 1)
-        pdf.cell(0, 8, f"Scan Date: {scan_results.get('timestamp', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}", 0, 1)
-        pdf.ln(5)
-
-        metrics = scan_results.get('metrics', {})
-        
-        if pdf_type in ['complete', 'summary']:
-            # Add summary section
-            add_summary_section(pdf, metrics)
+        try:
+            # Calculate metrics if not present or invalid
+            if 'metrics' not in scan_results or not isinstance(scan_results['metrics'], dict):
+                scan_results['metrics'] = calculate_metrics(scan_results)
             
-        if pdf_type == 'complete':
-            # Add all detailed findings
-            add_detailed_findings(pdf, scan_results)
-        elif pdf_type == 'high-med':
-            # Add only high and medium risk findings
-            add_high_medium_findings(pdf, scan_results)
-        elif pdf_type == 'high':
-            # Add only high risk findings
-            add_high_risk_findings(pdf, scan_results)
-        elif pdf_type == 'affected':
-            # Add only affected points
-            add_affected_points(pdf, scan_results)
+            # Basic information with extra validation
+            pdf.set_font('Arial', 'B', 14)
+            pdf.cell(0, 10, "Scan Information", 0, 1)
+            pdf.set_font('Arial', '', 11)
+            
+            # Safely get values with defaults
+            target_url = str(scan_results.get('target_url', 'N/A'))
+            timestamp = scan_results.get('timestamp', datetime.now())
+            if isinstance(timestamp, str):
+                try:
+                    timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                except:
+                    timestamp = datetime.now()
+            
+            pdf.cell(0, 8, f"Target URL: {target_url}", 0, 1)
+            pdf.cell(0, 8, f"Scan Date: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}", 0, 1)
+            pdf.ln(5)
 
-        return pdf
+            # Add appropriate sections based on pdf_type
+            if pdf_type in ['complete', 'summary']:
+                add_summary_section(pdf, scan_results['metrics'])
+            
+            if pdf_type == 'complete':
+                add_detailed_findings(pdf, scan_results)
+            elif pdf_type == 'high-med':
+                add_high_medium_findings(pdf, scan_results)
+            elif pdf_type == 'high':
+                add_high_risk_findings(pdf, scan_results)
+            elif pdf_type == 'affected':
+                add_affected_points(pdf, scan_results)
+
+            return pdf
+
+        except Exception as e:
+            print(f"Error in PDF content generation: {e}")
+            traceback.print_exc()
+            
+            # Create a basic error report
+            pdf = ReportPDF()
+            pdf.add_page()
+            pdf.set_font('Arial', 'B', 14)
+            pdf.cell(0, 10, "Error Generating Full Report", 0, 1)
+            pdf.set_font('Arial', '', 11)
+            pdf.multi_cell(0, 5, f"An error occurred while generating the report: {str(e)}")
+            pdf.ln(5)
+            pdf.multi_cell(0, 5, "However, we found the following data:")
+            pdf.ln(5)
+            
+            # Try to show whatever data we can
+            try:
+                if 'target_url' in scan_results:
+                    pdf.multi_cell(0, 5, f"Target URL: {scan_results['target_url']}")
+                if 'timestamp' in scan_results:
+                    pdf.multi_cell(0, 5, f"Scan Date: {scan_results['timestamp']}")
+                    
+                # Show basic counts even if detailed processing failed
+                if 'zap_results' in scan_results:
+                    alerts = scan_results['zap_results'].get('alerts', [])
+                    pdf.multi_cell(0, 5, f"ZAP Alerts Found: {len(alerts)}")
+                    
+                if 'nikto_results' in scan_results:
+                    vulns = scan_results['nikto_results'].get('vulnerabilities', [])
+                    pdf.multi_cell(0, 5, f"Nikto Vulnerabilities Found: {len(vulns)}")
+            except:
+                pass
+                
+            return pdf
 
     except Exception as e:
-        print(f"Error creating PDF report: {e}")
+        print(f"Critical error creating PDF report: {e}")
         traceback.print_exc()
         return None
+
+def generate_pdf_report(scan_results, output_path, pdf_type='complete'):
+    try:
+        if not isinstance(scan_results, dict):
+            print(f"Error: scan_results must be a dictionary, got {type(scan_results)}")
+            return False
+
+        # Ensure output directory exists
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+        pdf = create_pdf_report(scan_results, pdf_type)
+        if pdf is None:
+            return False
+
+        # Make sure we can write to the output path
+        try:
+            pdf.output(output_path)
+            print(f"PDF report generated successfully at: {output_path}")
+            return True
+        except Exception as e:
+            print(f"Error writing PDF to {output_path}: {e}")
+            traceback.print_exc()
+            return False
+
+    except Exception as e:
+        print(f"Error generating PDF: {e}")
+        traceback.print_exc()
+        return False
 
 def add_summary_section(pdf, metrics):
     pdf.chapter_title("Executive Summary")
@@ -118,17 +209,15 @@ def add_summary_section(pdf, metrics):
     pdf.cell(0, 8, "OWASP ZAP Findings:", 0, 1)
     pdf.set_font('Arial', '', 11)
     
-    risks = {
-        'high_risks': ('High Risk', '#FF0000'),
-        'medium_risks': ('Medium Risk', '#FFA500'),
-        'low_risks': ('Low Risk', '#008000'),
-        'info_risks': ('Informational', '#0000FF')
-    }
-    
-    for key, (label, color) in risks.items():
-        count = zap_metrics.get(key, 0)
-        pdf.set_text_color(int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16))
-        pdf.cell(0, 6, f"{label} Issues: {count}", 0, 1)
+    # Add ZAP metrics
+    pdf.set_text_color(255, 0, 0)
+    pdf.cell(0, 6, f"High Risk Issues: {zap_metrics.get('high_risks', 0)}", 0, 1)
+    pdf.set_text_color(255, 165, 0)
+    pdf.cell(0, 6, f"Medium Risk Issues: {zap_metrics.get('medium_risks', 0)}", 0, 1)
+    pdf.set_text_color(0, 128, 0)
+    pdf.cell(0, 6, f"Low Risk Issues: {zap_metrics.get('low_risks', 0)}", 0, 1)
+    pdf.set_text_color(0, 0, 255)
+    pdf.cell(0, 6, f"Informational Issues: {zap_metrics.get('info_risks', 0)}", 0, 1)
     
     # Reset text color
     pdf.set_text_color(0, 0, 0)
@@ -153,29 +242,18 @@ def add_detailed_findings(pdf, scan_results):
     try:
         print("Debug - scan_results structure:", json.dumps(scan_results, default=str, indent=2))
         
-        # Get scan results from stored data
-        zap_data = scan_results.get('zap_results', scan_results.get('owasp_zap', {}))
-        nikto_data = scan_results.get('nikto_results', scan_results.get('nikto', {}))
+        # Get scan results
+        zap_data = scan_results.get('zap_results', {})
+        nikto_data = scan_results.get('nikto_results', {})
 
         # Handle ZAP findings
-        alerts = []
-        if isinstance(zap_data, dict):
-            alerts = zap_data.get('alerts', [])
-            if not alerts and 'scan_results' in zap_data:
-                alerts = zap_data['scan_results'].get('alerts', [])
-        elif isinstance(zap_data, list):
-            alerts = zap_data
-
-        # Only add ZAP section if there are alerts
+        alerts = zap_data.get('alerts', [])
         if alerts:
             pdf.add_page()
             pdf.chapter_title("OWASP ZAP Findings")
             print(f"Found {len(alerts)} ZAP alerts")
 
             for alert in alerts:
-                if not isinstance(alert, dict):
-                    continue
-                    
                 pdf.set_font('Arial', 'B', 11)
                 risk_level = alert.get('risk', 'Unknown')
                 
@@ -187,13 +265,10 @@ def add_detailed_findings(pdf, scan_results):
                 elif risk_level.lower() == 'low':
                     pdf.set_text_color(0, 128, 0)
                 
-                # Alert name
-                name = alert.get('name', alert.get('alert', 'N/A'))
-                pdf.cell(0, 8, f"Finding: {name}", 0, 1)
+                pdf.cell(0, 8, f"Finding: {alert.get('name', 'N/A')}", 0, 1)
                 pdf.set_text_color(0, 0, 0)
                 pdf.set_font('Arial', '', 10)
                 
-                # Alert details
                 details = [
                     ('Risk Level', risk_level),
                     ('Confidence', alert.get('confidence', 'N/A')),
@@ -208,20 +283,11 @@ def add_detailed_findings(pdf, scan_results):
                 
                 for label, value in details:
                     if value:  # Only add if value exists
-                        try:
-                            pdf.multi_cell(0, 5, f"{label}: {value}")
-                        except Exception as e:
-                            print(f"Error writing detail {label}: {e}")
+                        pdf.multi_cell(0, 5, f"{label}: {value}")
                 pdf.ln(5)
 
         # Handle Nikto findings
-        vulns = []
-        if isinstance(nikto_data, dict):
-            vulns = nikto_data.get('vulnerabilities', [])
-        elif isinstance(nikto_data, list):
-            vulns = nikto_data
-
-        # Only add Nikto section if there are vulnerabilities
+        vulns = nikto_data.get('vulnerabilities', [])
         if vulns:
             pdf.add_page()
             pdf.chapter_title("Nikto Findings")
@@ -243,7 +309,6 @@ def add_detailed_findings(pdf, scan_results):
                 pdf.set_text_color(0, 0, 0)
                 pdf.set_font('Arial', '', 10)
                 
-                # Add all available details
                 if vuln.get('msg'):
                     pdf.multi_cell(0, 5, f"Message: {vuln['msg']}")
                 if vuln.get('method'):
@@ -265,7 +330,7 @@ def add_high_medium_findings(pdf, scan_results):
         alerts = scan_results['zap_results'].get('alerts', [])
         high_med_alerts = [a for a in alerts if a.get('risk') in ['High', 'Medium']]
         
-        if high_med_alerts:  # Only add section if there are findings
+        if high_med_alerts:
             pdf.add_page()
             pdf.chapter_title("High and Medium Risk Findings")
             pdf.set_font('Arial', 'B', 12)
@@ -279,7 +344,7 @@ def add_high_medium_findings(pdf, scan_results):
         vulns = scan_results['nikto_results'].get('vulnerabilities', [])
         high_med_vulns = [v for v in vulns if v.get('id', '').startswith(('INJECT', 'SQL', 'XSS', 'CONFIG', 'SSL', 'AUTH'))]
         
-        if high_med_vulns:  # Only add section if there are findings
+        if high_med_vulns:
             pdf.add_page()
             pdf.set_font('Arial', 'B', 12)
             pdf.cell(0, 8, "Nikto Findings:", 0, 1)
@@ -295,7 +360,7 @@ def add_high_risk_findings(pdf, scan_results):
         alerts = scan_results['zap_results'].get('alerts', [])
         high_alerts = [a for a in alerts if a.get('risk') == 'High']
         
-        if high_alerts:  # Only add section if there are findings
+        if high_alerts:
             if not has_findings:
                 pdf.add_page()
                 pdf.chapter_title("High Risk Findings Only")
@@ -312,7 +377,7 @@ def add_high_risk_findings(pdf, scan_results):
         vulns = scan_results['nikto_results'].get('vulnerabilities', [])
         high_vulns = [v for v in vulns if v.get('id', '').startswith(('INJECT', 'SQL', 'XSS'))]
         
-        if high_vulns:  # Only add section if there are findings
+        if high_vulns:
             if not has_findings:
                 pdf.add_page()
                 pdf.chapter_title("High Risk Findings Only")
@@ -350,7 +415,6 @@ def add_affected_points(pdf, scan_results):
         
         for point in sorted(affected_points):
             pdf.multi_cell(0, 5, f"• {point}")
-            pdf.ln(2)
 
 def add_finding_to_pdf(pdf, finding, is_zap=True):
     try:
@@ -361,6 +425,10 @@ def add_finding_to_pdf(pdf, finding, is_zap=True):
             pdf.set_font('Arial', '', 9)
             pdf.multi_cell(0, 5, f"Description: {sanitize_text(finding.get('description', 'N/A'))}")
             pdf.multi_cell(0, 5, f"Solution: {sanitize_text(finding.get('solution', 'N/A'))}")
+            if finding.get('url'):
+                pdf.multi_cell(0, 5, f"URL: {sanitize_text(finding['url'])}")
+            if finding.get('references'):
+                pdf.multi_cell(0, 5, f"References: {sanitize_text(finding['references'])}")
         else:
             pdf.cell(0, 8, f"ID: {sanitize_text(finding.get('id', 'N/A'))}", 0, 1)
             pdf.set_font('Arial', '', 9)
@@ -371,22 +439,3 @@ def add_finding_to_pdf(pdf, finding, is_zap=True):
     except Exception as e:
         print(f"Error adding finding to PDF: {e}")
         # Continue with next finding
-
-def generate_pdf_report(scan_results, output_path, pdf_type='complete'):
-    try:
-        if not isinstance(scan_results, dict):
-            print("Error: scan_results must be a dictionary")
-            return False
-
-        pdf = create_pdf_report(scan_results, pdf_type)
-        if pdf is None:
-            return False
-
-        pdf.output(output_path)
-        print(f"PDF report generated successfully at: {output_path}")
-        return True
-
-    except Exception as e:
-        print(f"Error generating PDF: {e}")
-        traceback.print_exc()
-        return False

@@ -1,0 +1,49 @@
+{
+    "timestamp": "2025-04-29 22:30:25",
+    "target_url": "https://demo.owasp-juice.shop/",
+    "scan_metrics": {
+        "zap": {
+            "high_risks": 0,
+            "medium_risks": 0,
+            "low_risks": 0,
+            "info_risks": 0
+        },
+        "nikto": {
+            "total_vulnerabilities": 0,
+            "high_risks": 0,
+            "medium_risks": 0,
+            "low_risks": 0
+        }
+    },
+    "file_locations": {
+        "nikto_output": "c:\\Users\\laxmi\\OneDrive\\Desktop\\1233\\1211\\121\\output\\nikto_1745946024.json",
+        "zap_output": "c:\\Users\\laxmi\\OneDrive\\Desktop\\1233\\1211\\121\\output\\zap_1745946024.json",
+        "combined_output": "c:\\Users\\laxmi\\OneDrive\\Desktop\\1233\\1211\\121\\output\\combined_1745946024.json"
+    },
+    "nikto_results": {
+        "scan_status": "error",
+        "host": "https://demo.owasp-juice.shop/",
+        "error": "'str' object has no attribute 'get'"
+    },
+    "zap_results": {
+        "metadata": {
+            "programName": "OWASP ZAP",
+            "version": "2.16.1",
+            "generated": "2025-04-29 22:30:25",
+            "site": {
+                "name": "https://demo.owasp-juice.shop/",
+                "host": "demo.owasp-juice.shop",
+                "port": "443",
+                "ssl": "true"
+            }
+        },
+        "alerts": [],
+        "summary": {
+            "total_alerts": 0,
+            "high_risks": 0,
+            "medium_risks": 0,
+            "low_risks": 0
+        }
+    },
+    "scan_id": "681105a9fdae39956a7dd436"
+}
