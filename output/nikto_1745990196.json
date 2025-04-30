@@ -1,0 +1,56 @@
+{
+    "scan_status": "completed",
+    "host": "https://demo.owasp-juice.shop/",
+    "ip": "81.169.145.156",
+    "port": "443",
+    "hostname": "demo.owasp-juice.shop",
+    "banner": "Heroku",
+    "ssl_info": {
+        "Ciphers": "TLS_AES_256_GCM_SHA384",
+        "Issuer": "/C=US/O=DigiCert Inc/OU=www.digicert.com/CN=RapidSSL TLS RSA CA G1"
+    },
+    "vulnerabilities": [
+        {
+            "id": "HEADER",
+            "method": "GET",
+            "msg": "/: Retrieved via header: 1.1 heroku-router.",
+            "references": ""
+        },
+        {
+            "id": "HEADER",
+            "method": "GET",
+            "msg": "/: Retrieved access-control-allow-origin header: *.",
+            "references": ""
+        },
+        {
+            "id": "HEADER",
+            "method": "GET",
+            "msg": "/:X-Frame-Options header is deprecated and was replaced with the Content-Security-Policy HTTP header with the frame-ancestors directive instead.",
+            "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options"
+        },
+        {
+            "id": "HEADER",
+            "method": "GET",
+            "msg": "/: Uncommon header(s) 'reporting-endpoints' found, with contents: heroku-nel=\"https://nel.heroku.com/reports?s=l6OfOlHLakee2TKZUInZGssGtjLYaSA0JJ8iz1lNq9o%3D&sid=812dcc77-0bd0-43b1-a5f1-b25750382959&ts=1745990202\".",
+            "references": ""
+        },
+        {
+            "id": "HEADER",
+            "method": "GET",
+            "msg": "/: Uncommon header(s) 'x-recruiting' found, with contents: /#/jobs.",
+            "references": ""
+        },
+        {
+            "id": "SSL",
+            "method": "GET",
+            "msg": "/: The site uses TLS and the Strict-Transport-Security HTTP header is not defined.",
+            "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security"
+        },
+        {
+            "id": "MISC",
+            "method": "GET",
+            "msg": ": Server banner changed from 'Heroku' to 'Apache/2.4.63 (Unix)'.",
+            "references": ""
+        }
+    ]
+}

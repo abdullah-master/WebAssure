@@ -230,14 +230,14 @@
                                 <input type="radio" name="scan_duration" value="quick" class="form-radio text-[#00ffcc]">
                                 <span class="ml-2">
                                     <span class="block text-white">Quick Scan</span>
-                                    <span class="text-sm text-[#e5e5e5]/60">5-10 minutes</span>
+                                    <span class="text-sm text-[#e5e5e5]/60">15-20 miinutes</span>
                                 </span>
                             </label>
                             <label class="flex items-center p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg cursor-pointer hover:bg-[#00ffcc]/5">
                                 <input type="radio" name="scan_duration" value="standard" class="form-radio text-[#00ffcc]" checked>
                                 <span class="ml-2">
                                     <span class="block text-white">Standard Scan</span>
-                                    <span class="text-sm text-[#e5e5e5]/60">15-20 minutes</span>
+                                    <span class="text-sm text-[#e5e5e5]/60">25-30 minutes</span>
                                 </span>
                             </label>
                             <label class="flex items-center p-3 bg-[#0d1117] border border-[#00ffcc]/30 rounded-lg cursor-pointer hover:bg-[#00ffcc]/5">
@@ -328,8 +328,15 @@
                         </div>
                     </div>
 
-                    <div class="flex justify-center">
-                        <button type="submit" class="px-8 py-4 bg-[#00ffcc] text-[#0d1117] rounded-lg font-bold text-lg transform transition-all hover:scale-105 neon-glow">
+                    <div class="flex flex-col items-center justify-center space-y-4">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="terms-checkbox" class="form-checkbox text-[#00ffcc] h-4 w-4">
+                            <span class="text-[#e5e5e5]/70 text-sm">
+                                I acknowledge and agree that I will only scan systems I have explicit permission to test. I agree not to use this service for any malicious purposes, unauthorized access attempts, or other harmful activities.
+                            </span>
+                        </label>
+                        <button type="submit" id="scan-button" disabled 
+                                class="px-8 py-4 bg-[#00ffcc] text-[#0d1117] rounded-lg font-bold text-lg transform transition-all hover:scale-105 neon-glow disabled:opacity-50 disabled:cursor-not-allowed">
                             INITIATE SCAN
                         </button>
                     </div>
@@ -414,6 +421,10 @@ document.addEventListener('DOMContentLoaded', () => {
             alert(error.message || 'Scan failed. Please try again.');
         });
     });
+});
+
+document.getElementById('terms-checkbox').addEventListener('change', function() {
+    document.getElementById('scan-button').disabled = !this.checked;
 });
 </script>
 </body>
